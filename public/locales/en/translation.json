@@ -1,0 +1,38 @@
+{
+  "app": {
+    "title": "Web Scraper Frontend",
+    "description": "Upload a CSV file to start scraping.",
+    "error": "An unexpected error occurred. Please try again later."
+  },
+  "fileUploader": {
+    "dragAndDrop": "Drag and drop a .csv file here, or click to select a file.",
+    "selectFile": "Select File",
+    "dropMessage": "Drop the file here...",
+    "errors": {
+      "invalidFileType": "Invalid file type. Please upload a .csv file."
+    }
+  },
+  "batchProgress": {
+    "title": "Processing Batch",
+    "progressText": "Processing {{processed}} of {{total}} records..."
+  },
+  "resultsTable": {
+    "filterPlaceholder": "Filter by name...",
+    "noResults": "No results found.",
+    "previous": "Previous",
+    "next": "Next",
+    "columns": {
+      "name": "Name",
+      "city": "City",
+      "phone": "Phone",
+      "website": "Website",
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday"
+    }
+  }
+}

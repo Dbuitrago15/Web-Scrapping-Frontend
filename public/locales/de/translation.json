@@ -1,0 +1,38 @@
+{
+  "app": {
+    "title": "Web Scraper Frontend",
+    "description": "Laden Sie eine CSV-Datei hoch, um das Scraping zu starten.",
+    "error": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es später erneut."
+  },
+  "fileUploader": {
+    "dragAndDrop": "Ziehen Sie eine .csv-Datei hierher oder klicken Sie, um eine Datei auszuwählen.",
+    "selectFile": "Datei Auswählen",
+    "dropMessage": "Datei hier ablegen...",
+    "errors": {
+      "invalidFileType": "Ungültiger Dateityp. Bitte laden Sie eine .csv-Datei hoch."
+    }
+  },
+  "batchProgress": {
+    "title": "Stapelverarbeitung",
+    "progressText": "Verarbeite {{processed}} von {{total}} Datensätzen..."
+  },
+  "resultsTable": {
+    "filterPlaceholder": "Nach Namen filtern...",
+    "noResults": "Keine Ergebnisse gefunden.",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "columns": {
+      "name": "Name",
+      "city": "Stadt",
+      "phone": "Telefon",
+      "website": "Webseite",
+      "monday": "Montag",
+      "tuesday": "Dienstag",
+      "wednesday": "Mittwoch",
+      "thursday": "Donnerstag",
+      "friday": "Freitag",
+      "saturday": "Samstag",
+      "sunday": "Sonntag"
+    }
+  }
+}
