@@ -9,11 +9,18 @@ type TranslationKey =
   | "upload.description"
   | "upload.selectFile"
   | "upload.button"
+  | "upload.uploading"
   | "processing.status"
   | "processing.button"
+  | "processing.progress"
   | "results.title"
   | "results.description"
   | "results.viewButton"
+  | "error.title"
+  | "error.upload"
+  | "error.processing"
+  | "error.network"
+  | "error.retry"
   | "table.search"
   | "table.noResults"
   | "table.showing"
@@ -40,11 +47,18 @@ const translations: Record<TranslationKey, string> = {
   "upload.description": "Select a CSV file containing business information to process and enhance.",
   "upload.selectFile": "Select CSV File",
   "upload.button": "Process File",
+  "upload.uploading": "Uploading file...",
   "processing.status": "Processing your file...",
   "processing.button": "Processing...",
+  "processing.progress": "Processing {completed} of {total} records",
   "results.title": "Processing Complete",
   "results.description": "Successfully processed {count} records from your CSV file.",
   "results.viewButton": "View Results",
+  "error.title": "Error",
+  "error.upload": "Failed to upload file. Please check the file and try again.",
+  "error.processing": "An error occurred while processing your file.",
+  "error.network": "Cannot connect to server. Using demo mode with sample data.",
+  "error.retry": "Try Again",
   "table.search": "Search...",
   "table.noResults": "No results found.",
   "table.showing": "Showing",

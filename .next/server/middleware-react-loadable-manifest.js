@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST="{}"
+self.__REACT_LOADABLE_MANIFEST="{\"app\\\\page.tsx -> @/lib/mock-data\":{\"id\":\"app\\\\page.tsx -> @/lib/mock-data\",\"files\":[\"static/chunks/_app-pages-browser_src_lib_mock-data_ts.js\"]}}"
