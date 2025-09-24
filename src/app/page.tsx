@@ -1,13 +1,14 @@
 "use client"
 
 import React, { useState, useCallback } from "react"
-import { ApiService, ScrapingResult, BatchStatus } from "@/lib/api"
+import { ApiService, ScrapingResult as ApiScrapingResult, BatchStatus, parseProgress } from "@/lib/api"
 import { FileUploaderCard } from "@/components/file-uploader-card"
 import { ProcessingStatusCard } from "@/components/processing-status-card"
 import { CompletionCard } from "@/components/completion-card"
 import { ErrorCard } from "@/components/error-card"
 import { ResultsModal } from "@/components/results-modal"
 import { ConnectionStatus } from "@/components/connection-status"
+import { BackendStatusCard } from "@/components/backend-status-card"
 import { useTranslation } from "@/hooks/use-translation"
 import { usePolling } from "@/hooks/use-polling"
 
@@ -28,7 +29,7 @@ export default function HomePage() {
   const [file, setFile] = useState<File | null>(null)
   const [batchId, setBatchId] = useState<string | null>(null)
   const [progress, setProgress] = useState<Progress>({ completed: 0, total: 0 })
-  const [results, setResults] = useState<ScrapingResult[]>([])
+  const [results, setResults] = useState<ApiScrapingResult[]>([])
   const [error, setError] = useState<string>('')
   const [showResults, setShowResults] = useState(false)
   
@@ -60,22 +61,9 @@ export default function HomePage() {
     setError('')
 
     try {
-      console.log('Uploading file:', file.name)
+      console.log('🚀 Starting upload process for:', file.name)
       
-      // Verificar si el backend está disponible primero
-      const isBackendAvailable = await ApiService.healthCheck()
-      
-      if (!isBackendAvailable) {
-        console.warn('Backend not available, using mock data mode')
-        // Modo de desarrollo con datos mock
-        setBatchId('mock-batch-id')
-        setStatus('processing')
-        
-        // Simular progreso de procesamiento
-        simulateMockProcessing()
-        return
-      }
-      
+      // Intentar upload directamente - si falla, el error nos dirá por qué
       const response = await ApiService.uploadFile(file)
       
       console.log('Upload successful, batch ID:', response.batch_id)
@@ -89,28 +77,16 @@ export default function HomePage() {
     }
   }, [file, t])
 
-  // Función para simular procesamiento cuando el backend no está disponible
-  const simulateMockProcessing = async () => {
-    const { generateMockResults, delay } = await import('@/lib/mock-data')
-    
-    // Simular progreso
-    for (let i = 0; i <= 100; i += 10) {
-      setProgress({ completed: i, total: 100 })
-      await delay(300)
-    }
-    
-    // Generar resultados mock
-    const mockResults = generateMockResults(75)
-    setResults(mockResults)
-    setStatus('complete')
-  }
+  // Esta función ya no es necesaria - usamos solo datos reales del backend
 
   // ===============================
   // CALLBACKS PARA POLLING
   // ===============================
   const handleStatusUpdate = useCallback((batchStatus: BatchStatus) => {
     console.log('Status update received:', batchStatus)
-    setProgress(batchStatus.progress)
+    // Parsear el progreso del backend
+    const parsedProgress = parseProgress(batchStatus.progress)
+    setProgress(parsedProgress)
   }, [])
 
   const handleProcessingComplete = useCallback((batchStatus: BatchStatus) => {
@@ -220,8 +196,9 @@ export default function HomePage() {
         </div>
 
         {/* Connection Status */}
-        <div className="flex justify-center">
+        <div className="flex justify-center gap-4">
           <ConnectionStatus />
+          <BackendStatusCard />
         </div>
 
         {/* Contenido principal basado en el estado */}

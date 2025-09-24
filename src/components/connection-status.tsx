@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { Wifi, WifiOff } from 'lucide-react'
 
 export function ConnectionStatus() {
-  const [isConnected, setIsConnected] = useState<boolean | null>(null)
+  const [isConnected, setIsConnected] = useState<boolean>(false)
   const [isChecking, setIsChecking] = useState(true)
 
   useEffect(() => {
@@ -19,10 +19,11 @@ export function ConnectionStatus() {
       }
     }
 
+    // Solo hacer el check inicial
     checkConnection()
     
-    // Verificar conexión cada 30 segundos
-    const interval = setInterval(checkConnection, 30000)
+    // Verificar conexión cada 60 segundos (menos frecuente)
+    const interval = setInterval(checkConnection, 60000)
     
     return () => clearInterval(interval)
   }, [])
@@ -43,13 +44,13 @@ export function ConnectionStatus() {
     >
       {isConnected ? (
         <>
-          <Wifi className="h-3 w-3 mr-1" />
-          Connected to backend
+          <Wifi className="h-3 w-3 mr-1 text-green-600" />
+          Backend Connected
         </>
       ) : (
         <>
-          <WifiOff className="h-3 w-3 mr-1" />
-          Demo mode (backend offline)
+          <WifiOff className="h-3 w-3 mr-1 text-orange-600" />
+          Demo Mode
         </>
       )}
     </Badge>

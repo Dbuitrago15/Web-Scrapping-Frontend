@@ -19,19 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUpDown, ArrowUp, ArrowDown, Search, Star } from 'lucide-react'
 import { useTranslation } from "@/hooks/use-translation"
-
-interface ScrapingResult {
-  id: string
-  name: string
-  city: string
-  email: string
-  phone: string
-  website: string
-  category: string
-  rating: number
-  reviews: number
-  address: string
-}
+import { ScrapingResult, BusinessHours } from "@/lib/api"
 
 interface DataTableProps {
   data: ScrapingResult[]
@@ -46,7 +34,7 @@ export function DataTable({ data }: DataTableProps) {
   const columns: ColumnDef<ScrapingResult>[] = useMemo(
     () => [
       {
-        accessorKey: "name",
+        accessorKey: "search_term",
         header: ({ column }) => {
           return (
             <Button
@@ -54,7 +42,7 @@ export function DataTable({ data }: DataTableProps) {
               onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
               className="h-auto p-0 font-semibold"
             >
-              {t("columns.name")}
+              Business Name
               {column.getIsSorted() === "asc" ? (
                 <ArrowUp className="ml-2 h-4 w-4" />
               ) : column.getIsSorted() === "desc" ? (
@@ -65,10 +53,10 @@ export function DataTable({ data }: DataTableProps) {
             </Button>
           )
         },
-        cell: ({ row }) => <div className="font-medium">{row.getValue("name")}</div>,
+        cell: ({ row }) => <div className="font-medium max-w-xs truncate" title={row.getValue("search_term")}>{row.getValue("search_term")}</div>,
       },
       {
-        accessorKey: "city",
+        accessorKey: "exact_address",
         header: ({ column }) => {
           return (
             <Button
@@ -76,7 +64,7 @@ export function DataTable({ data }: DataTableProps) {
               onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
               className="h-auto p-0 font-semibold"
             >
-              {t("columns.city")}
+              Address
               {column.getIsSorted() === "asc" ? (
                 <ArrowUp className="ml-2 h-4 w-4" />
               ) : column.getIsSorted() === "desc" ? (
@@ -87,60 +75,41 @@ export function DataTable({ data }: DataTableProps) {
             </Button>
           )
         },
+        cell: ({ row }) => <div className="max-w-xs truncate" title={row.getValue("exact_address")}>{row.getValue("exact_address")}</div>,
       },
       {
-        accessorKey: "email",
-        header: t("columns.email"),
-        cell: ({ row }) => (
-          <a href={`mailto:${row.getValue("email")}`} className="text-blue-600 hover:underline">
-            {row.getValue("email")}
-          </a>
-        ),
-      },
-      {
-        accessorKey: "phone",
-        header: t("columns.phone"),
-        cell: ({ row }) => (
-          <a href={`tel:${row.getValue("phone")}`} className="text-blue-600 hover:underline">
-            {row.getValue("phone")}
-          </a>
-        ),
+        accessorKey: "phone_number",
+        header: "Phone",
+        cell: ({ row }) => {
+          const phone = row.getValue("phone_number") as string;
+          return phone ? (
+            <a href={`tel:${phone}`} className="text-blue-600 hover:underline">
+              {phone}
+            </a>
+          ) : (
+            <span className="text-muted-foreground">N/A</span>
+          )
+        },
       },
       {
         accessorKey: "website",
-        header: t("columns.website"),
-        cell: ({ row }) => (
-          <a
-            href={row.getValue("website")}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 hover:underline"
-          >
-            {row.getValue("website")}
-          </a>
-        ),
-      },
-      {
-        accessorKey: "category",
-        header: ({ column }) => {
-          return (
-            <Button
-              variant="ghost"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-              className="h-auto p-0 font-semibold"
+        header: "Website",
+        cell: ({ row }) => {
+          const website = row.getValue("website") as string | null;
+          return website ? (
+            <a
+              href={website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:underline max-w-xs truncate block"
+              title={website}
             >
-              {t("columns.category")}
-              {column.getIsSorted() === "asc" ? (
-                <ArrowUp className="ml-2 h-4 w-4" />
-              ) : column.getIsSorted() === "desc" ? (
-                <ArrowDown className="ml-2 h-4 w-4" />
-              ) : (
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-              )}
-            </Button>
+              {website}
+            </a>
+          ) : (
+            <span className="text-muted-foreground">N/A</span>
           )
         },
-        cell: ({ row }) => <Badge variant="secondary">{row.getValue("category")}</Badge>,
       },
       {
         accessorKey: "rating",
@@ -151,7 +120,7 @@ export function DataTable({ data }: DataTableProps) {
               onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
               className="h-auto p-0 font-semibold"
             >
-              {t("columns.rating")}
+              Rating
               {column.getIsSorted() === "asc" ? (
                 <ArrowUp className="ml-2 h-4 w-4" />
               ) : column.getIsSorted() === "desc" ? (
@@ -162,34 +131,38 @@ export function DataTable({ data }: DataTableProps) {
             </Button>
           )
         },
-        cell: ({ row }) => (
-          <div className="flex items-center gap-1">
-            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-            <span className="font-medium">{row.getValue("rating")}</span>
-          </div>
-        ),
+        cell: ({ row }) => {
+          const rating = row.getValue("rating") as string;
+          return rating ? (
+            <div className="flex items-center gap-1">
+              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+              <span className="font-medium">{rating}</span>
+            </div>
+          ) : (
+            <span className="text-muted-foreground">N/A</span>
+          )
+        },
       },
       {
-        accessorKey: "reviews",
-        header: ({ column }) => {
+        accessorKey: "hours",
+        header: "Hours",
+        cell: ({ row }) => {
+          const hours = row.getValue("hours") as BusinessHours | null;
+          if (!hours) {
+            return <span className="text-muted-foreground">N/A</span>;
+          }
+          
+          // Mostrar solo el día actual o el primer día disponible
+          const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+          const today = dayNames[new Date().getDay()] as keyof BusinessHours;
+          const todayHours = hours[today] || Object.values(hours)[0];
+          
           return (
-            <Button
-              variant="ghost"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-              className="h-auto p-0 font-semibold"
-            >
-              {t("columns.reviews")}
-              {column.getIsSorted() === "asc" ? (
-                <ArrowUp className="ml-2 h-4 w-4" />
-              ) : column.getIsSorted() === "desc" ? (
-                <ArrowDown className="ml-2 h-4 w-4" />
-              ) : (
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-              )}
-            </Button>
-          )
+            <div className="max-w-xs truncate" title={JSON.stringify(hours, null, 2)}>
+              {todayHours || "Closed"}
+            </div>
+          );
         },
-        cell: ({ row }) => <span className="text-muted-foreground">{row.getValue("reviews")} reviews</span>,
       },
     ],
     [t],

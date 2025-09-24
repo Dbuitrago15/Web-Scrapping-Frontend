@@ -2,19 +2,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { DataTable } from "@/components/data-table"
 import { useTranslation } from "@/hooks/use-translation"
-
-interface ScrapingResult {
-  id: string
-  name: string
-  city: string
-  email: string
-  phone: string
-  website: string
-  category: string
-  rating: number
-  reviews: number
-  address: string
-}
+import { ScrapingResult } from "@/lib/api"
 
 interface ResultsModalProps {
   isOpen: boolean

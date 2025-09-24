@@ -48,8 +48,8 @@ export function usePolling({
           onComplete(status)
           stopPolling()
         } else if (status.status === 'FAILED') {
-          console.log('Batch failed:', status.error_message)
-          onError(status.error_message || 'Processing failed')
+          console.log('Batch failed')
+          onError('Processing failed')
           stopPolling()
         }
       } catch (error) {
