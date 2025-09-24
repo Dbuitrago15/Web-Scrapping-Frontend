@@ -66,23 +66,51 @@ export interface BatchStatus {
   results: ScrapingResult[] | null
 }
 
+// Interfaz para resultados exitosos de scraping
 export interface ScrapingResult {
-  search_term: string
-  exact_address: string
+  // Core Business Information
+  name: string | null
+  address: string | null
+  phone: string | null
   website: string | null
-  phone_number: string
-  rating: string
+  rating: string | null
+  reviews_count: string | null
+  category: string | null
+
+  // Daily Hours Breakdown (NEW - Main Feature)
+  monday_hours: string | null
+  tuesday_hours: string | null
+  wednesday_hours: string | null
+  thursday_hours: string | null
+  friday_hours: string | null
+  saturday_hours: string | null
+  sunday_hours: string | null
+
+  // Legacy Hours Object (for backward compatibility)
   hours: BusinessHours | null
+
+  // Metadata
+  search_query: string
+  input_data: {
+    name: string
+    address: string
+    city: string
+    postal_code: string
+  }
+  
+  // Error handling (for failed extractions)
+  error?: string
+  strategies_tried?: string[]
 }
 
 export interface BusinessHours {
-  monday?: string
-  tuesday?: string
-  wednesday?: string
-  thursday?: string
-  friday?: string
-  saturday?: string
-  sunday?: string
+  monday: string | null
+  tuesday: string | null
+  wednesday: string | null
+  thursday: string | null
+  friday: string | null
+  saturday: string | null
+  sunday: string | null
 }
 
 // Utilidad para parsear el progreso del backend

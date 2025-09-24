@@ -33,106 +33,67 @@ export function DataTable({ data }: DataTableProps) {
 
   const columns: ColumnDef<ScrapingResult>[] = useMemo(
     () => [
+      // 1. Business Name
       {
-        accessorKey: "search_term",
-        header: ({ column }) => {
-          return (
-            <Button
-              variant="ghost"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-              className="h-auto p-0 font-semibold"
-            >
-              Business Name
-              {column.getIsSorted() === "asc" ? (
-                <ArrowUp className="ml-2 h-4 w-4" />
-              ) : column.getIsSorted() === "desc" ? (
-                <ArrowDown className="ml-2 h-4 w-4" />
-              ) : (
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-              )}
-            </Button>
-          )
-        },
-        cell: ({ row }) => <div className="font-medium max-w-xs truncate" title={row.getValue("search_term")}>{row.getValue("search_term")}</div>,
-      },
-      {
-        accessorKey: "exact_address",
-        header: ({ column }) => {
-          return (
-            <Button
-              variant="ghost"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-              className="h-auto p-0 font-semibold"
-            >
-              Address
-              {column.getIsSorted() === "asc" ? (
-                <ArrowUp className="ml-2 h-4 w-4" />
-              ) : column.getIsSorted() === "desc" ? (
-                <ArrowDown className="ml-2 h-4 w-4" />
-              ) : (
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-              )}
-            </Button>
-          )
-        },
-        cell: ({ row }) => <div className="max-w-xs truncate" title={row.getValue("exact_address")}>{row.getValue("exact_address")}</div>,
-      },
-      {
-        accessorKey: "phone_number",
-        header: "Phone",
+        accessorKey: "name",
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="h-auto p-0 font-semibold"
+          >
+            Business Name
+            {column.getIsSorted() === "asc" ? (
+              <ArrowUp className="ml-2 h-4 w-4" />
+            ) : column.getIsSorted() === "desc" ? (
+              <ArrowDown className="ml-2 h-4 w-4" />
+            ) : (
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            )}
+          </Button>
+        ),
         cell: ({ row }) => {
-          const phone = row.getValue("phone_number") as string;
-          return phone ? (
-            <a href={`tel:${phone}`} className="text-blue-600 hover:underline">
-              {phone}
-            </a>
-          ) : (
-            <span className="text-muted-foreground">N/A</span>
-          )
+          const name = row.getValue("name") as string | null;
+          const hasError = row.original.error;
+          return (
+            <div className="font-medium max-w-xs">
+              {hasError ? (
+                <div className="text-red-600">
+                  ❌ {row.original.input_data.name}
+                  <div className="text-xs text-muted-foreground">
+                    {row.original.error}
+                  </div>
+                </div>
+              ) : (
+                <div className="truncate" title={name || 'N/A'}>
+                  {name || 'N/A'}
+                </div>
+              )}
+            </div>
+          );
         },
       },
-      {
-        accessorKey: "website",
-        header: "Website",
-        cell: ({ row }) => {
-          const website = row.getValue("website") as string | null;
-          return website ? (
-            <a
-              href={website}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:underline max-w-xs truncate block"
-              title={website}
-            >
-              {website}
-            </a>
-          ) : (
-            <span className="text-muted-foreground">N/A</span>
-          )
-        },
-      },
+      // 2. Rating
       {
         accessorKey: "rating",
-        header: ({ column }) => {
-          return (
-            <Button
-              variant="ghost"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-              className="h-auto p-0 font-semibold"
-            >
-              Rating
-              {column.getIsSorted() === "asc" ? (
-                <ArrowUp className="ml-2 h-4 w-4" />
-              ) : column.getIsSorted() === "desc" ? (
-                <ArrowDown className="ml-2 h-4 w-4" />
-              ) : (
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-              )}
-            </Button>
-          )
-        },
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="h-auto p-0 font-semibold"
+          >
+            Rating
+            {column.getIsSorted() === "asc" ? (
+              <ArrowUp className="ml-2 h-4 w-4" />
+            ) : column.getIsSorted() === "desc" ? (
+              <ArrowDown className="ml-2 h-4 w-4" />
+            ) : (
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            )}
+          </Button>
+        ),
         cell: ({ row }) => {
-          const rating = row.getValue("rating") as string;
+          const rating = row.getValue("rating") as string | null;
           return rating ? (
             <div className="flex items-center gap-1">
               <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
@@ -140,33 +101,147 @@ export function DataTable({ data }: DataTableProps) {
             </div>
           ) : (
             <span className="text-muted-foreground">N/A</span>
-          )
+          );
         },
       },
+      // 3. Reviews Count
       {
-        accessorKey: "hours",
-        header: "Hours",
+        accessorKey: "reviews_count",
+        header: "Reviews",
         cell: ({ row }) => {
-          const hours = row.getValue("hours") as BusinessHours | null;
-          if (!hours) {
-            return <span className="text-muted-foreground">N/A</span>;
-          }
-          
-          // Mostrar solo el día actual o el primer día disponible
-          const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-          const today = dayNames[new Date().getDay()] as keyof BusinessHours;
-          const todayHours = hours[today] || Object.values(hours)[0];
-          
+          const reviews = row.getValue("reviews_count") as string | null;
+          return reviews ? (
+            <span className="text-muted-foreground">{reviews}</span>
+          ) : (
+            <span className="text-muted-foreground">N/A</span>
+          );
+        },
+      },
+      // 4. Address
+      {
+        accessorKey: "address",
+        header: "Address",
+        cell: ({ row }) => {
+          const address = row.getValue("address") as string | null;
           return (
-            <div className="max-w-xs truncate" title={JSON.stringify(hours, null, 2)}>
-              {todayHours || "Closed"}
+            <div className="max-w-xs truncate" title={address || 'N/A'}>
+              {address || 'N/A'}
             </div>
+          );
+        },
+      },
+      // 5. Phone
+      {
+        accessorKey: "phone",
+        header: "Phone",
+        cell: ({ row }) => {
+          const phone = row.getValue("phone") as string | null;
+          return phone ? (
+            <a href={`tel:${phone}`} className="text-blue-600 hover:underline">
+              {phone}
+            </a>
+          ) : (
+            <span className="text-muted-foreground">N/A</span>
+          );
+        },
+      },
+      // 6. Website
+      {
+        accessorKey: "website",
+        header: "Website",
+        cell: ({ row }) => {
+          const website = row.getValue("website") as string | null;
+          return website ? (
+            <a
+              href={website.startsWith('http') ? website : `https://${website}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:underline max-w-xs truncate block"
+              title={website}
+            >
+              🌐 Link
+            </a>
+          ) : (
+            <span className="text-muted-foreground">N/A</span>
+          );
+        },
+      },
+      // 7-13. Daily Hours (NEW MAIN FEATURE)
+      {
+        accessorKey: "monday_hours",
+        header: "Mon",
+        cell: ({ row }) => formatHours(row.getValue("monday_hours") as string | null),
+      },
+      {
+        accessorKey: "tuesday_hours",
+        header: "Tue",
+        cell: ({ row }) => formatHours(row.getValue("tuesday_hours") as string | null),
+      },
+      {
+        accessorKey: "wednesday_hours",
+        header: "Wed",
+        cell: ({ row }) => formatHours(row.getValue("wednesday_hours") as string | null),
+      },
+      {
+        accessorKey: "thursday_hours",
+        header: "Thu",
+        cell: ({ row }) => formatHours(row.getValue("thursday_hours") as string | null),
+      },
+      {
+        accessorKey: "friday_hours",
+        header: "Fri",
+        cell: ({ row }) => formatHours(row.getValue("friday_hours") as string | null),
+      },
+      {
+        accessorKey: "saturday_hours",
+        header: "Sat",
+        cell: ({ row }) => formatHours(row.getValue("saturday_hours") as string | null),
+      },
+      {
+        accessorKey: "sunday_hours",
+        header: "Sun",
+        cell: ({ row }) => formatHours(row.getValue("sunday_hours") as string | null),
+      },
+      // 14. Category
+      {
+        accessorKey: "category",
+        header: "Category",
+        cell: ({ row }) => {
+          const category = row.getValue("category") as string | null;
+          return category ? (
+            <Badge variant="secondary" className="max-w-xs truncate">
+              {category}
+            </Badge>
+          ) : (
+            <span className="text-muted-foreground">N/A</span>
           );
         },
       },
     ],
     [t],
   )
+
+  // Helper function to format hours display
+  const formatHours = (hours: string | null): JSX.Element => {
+    if (!hours) {
+      return <span className="text-muted-foreground text-xs">N/A</span>;
+    }
+    
+    const lowerHours = hours.toLowerCase();
+    if (lowerHours.includes('cerrado') || lowerHours.includes('closed')) {
+      return <span className="text-red-500 text-xs">🔴 Closed</span>;
+    }
+    
+    if (lowerHours.includes('24')) {
+      return <span className="text-green-500 text-xs">🟢 24h</span>;
+    }
+    
+    return (
+      <span className="text-blue-600 text-xs max-w-20 truncate block" title={hours}>
+        🟡 {hours}
+      </span>
+    );
+  }
 
   const table = useReactTable({
     data,

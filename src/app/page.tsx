@@ -164,7 +164,7 @@ export default function HomePage() {
       case 'complete':
         return (
           <CompletionCard
-            resultCount={results.length}
+            results={results}
             onViewResults={handleViewResults}
           />
         )
