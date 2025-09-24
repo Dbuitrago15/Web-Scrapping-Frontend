@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { RefreshCw, Server, Database, Cog } from "lucide-react"
+import { useTranslation } from "@/hooks/use-translation"
 
 interface ServiceStatus {
   api: boolean
@@ -13,6 +14,7 @@ interface ServiceStatus {
 }
 
 export function BackendStatusCard() {
+  const { t } = useTranslation()
   const [status, setStatus] = useState<ServiceStatus>({
     api: false,
     redis: false, 
@@ -62,7 +64,7 @@ export function BackendStatusCard() {
         {label}
       </span>
       <Badge variant={isUp ? "default" : "destructive"}>
-        {isUp ? "✅ Up" : "❌ Down"}
+        {isUp ? `✅ ${t('up')}` : `❌ ${t('down')}`}
       </Badge>
     </div>
   )
@@ -71,7 +73,7 @@ export function BackendStatusCard() {
     <Card className="w-full max-w-md">
       <CardHeader className="pb-3">
         <CardTitle className="text-sm flex items-center justify-between">
-          Backend Services Status
+          {t('backend_services_status')}
           <Button 
             variant="ghost" 
             size="sm"
@@ -89,14 +91,14 @@ export function BackendStatusCard() {
         
         {!status.api && (
           <div className="text-xs text-muted-foreground p-2 bg-muted rounded">
-            💡 Start backend: <code>docker-compose up --build -d</code>
+            💡 {t('start_backend')}: <code>docker-compose up --build -d</code>
           </div>
         )}
         
         {status.api && (!status.redis || !status.worker) && (
           <div className="text-xs text-muted-foreground p-2 bg-muted rounded">
-            ⚠️ API is running but Redis/Worker status unknown. 
-            Check <code>docker-compose ps</code>
+            ⚠️ {t('api_running_redis_worker_unknown')} 
+            {t('check_docker_compose')} <code>docker-compose ps</code>
           </div>
         )}
       </CardContent>

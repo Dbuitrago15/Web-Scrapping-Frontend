@@ -9,6 +9,7 @@ import { ErrorCard } from "@/components/error-card"
 import { ResultsModal } from "@/components/results-modal"
 import { ConnectionStatus } from "@/components/connection-status"
 import { BackendStatusCard } from "@/components/backend-status-card"
+import { LanguageSelector } from "@/components/language-selector"
 import { useTranslation } from "@/hooks/use-translation"
 import { usePolling } from "@/hooks/use-polling"
 
@@ -184,6 +185,11 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-background p-4">
+      {/* Language selector in top-right corner */}
+      <div className="absolute top-4 right-4">
+        <LanguageSelector />
+      </div>
+      
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">

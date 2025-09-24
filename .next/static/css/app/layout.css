@@ -673,14 +673,23 @@ video {
 .mb-8 {
   margin-bottom: 2rem;
 }
+.ml-1 {
+  margin-left: 0.25rem;
+}
 .ml-2 {
   margin-left: 0.5rem;
+}
+.ml-auto {
+  margin-left: auto;
 }
 .mr-1 {
   margin-right: 0.25rem;
 }
 .mr-2 {
   margin-right: 0.5rem;
+}
+.mt-0\.5 {
+  margin-top: 0.125rem;
 }
 .mt-1 {
   margin-top: 0.25rem;
@@ -693,12 +702,6 @@ video {
 }
 .mt-4 {
   margin-top: 1rem;
-}
-.ml-1 {
-  margin-left: 0.25rem;
-}
-.mt-0\.5 {
-  margin-top: 0.125rem;
 }
 .block {
   display: block;
@@ -772,6 +775,9 @@ video {
 .min-h-screen {
   min-height: 100vh;
 }
+.w-2 {
+  width: 0.5rem;
+}
 .w-3 {
   width: 0.75rem;
 }
@@ -796,21 +802,24 @@ video {
 .w-\[70px\] {
   width: 70px;
 }
-.w-full {
-  width: 100%;
-}
 .w-fit {
   width: -moz-fit-content;
   width: fit-content;
+}
+.w-full {
+  width: 100%;
+}
+.min-w-20 {
+  min-width: 5rem;
+}
+.min-w-\[150px\] {
+  min-width: 150px;
 }
 .min-w-\[8rem\] {
   min-width: 8rem;
 }
 .min-w-\[var\(--radix-select-trigger-width\)\] {
   min-width: var(--radix-select-trigger-width);
-}
-.min-w-20 {
-  min-width: 5rem;
 }
 .max-w-20 {
   max-width: 5rem;
@@ -874,6 +883,9 @@ video {
 .cursor-default {
   cursor: default;
 }
+.cursor-pointer {
+  cursor: pointer;
+}
 .select-none {
   -webkit-user-select: none;
      -moz-user-select: none;
@@ -911,6 +923,9 @@ video {
 }
 .gap-2 {
   gap: 0.5rem;
+}
+.gap-3 {
+  gap: 0.75rem;
 }
 .gap-4 {
   gap: 1rem;
@@ -1012,6 +1027,9 @@ video {
 .border-transparent {
   border-color: transparent;
 }
+.bg-accent {
+  background-color: hsl(var(--accent));
+}
 .bg-background {
   background-color: hsl(var(--background));
 }
@@ -1048,6 +1066,9 @@ video {
 }
 .bg-transparent {
   background-color: transparent;
+}
+.fill-current {
+  fill: currentColor;
 }
 .fill-yellow-400 {
   fill: #facc15;
@@ -1122,6 +1143,9 @@ video {
 .pl-8 {
   padding-left: 2rem;
 }
+.pr-2 {
+  padding-right: 0.5rem;
+}
 .pr-8 {
   padding-right: 2rem;
 }
@@ -1182,6 +1206,9 @@ video {
 }
 .tracking-tight {
   letter-spacing: -0.025em;
+}
+.tracking-widest {
+  letter-spacing: 0.1em;
 }
 .text-blue-600 {
   --tw-text-opacity: 1;
@@ -1252,6 +1279,9 @@ video {
 }
 .opacity-50 {
   opacity: 0.5;
+}
+.opacity-60 {
+  opacity: 0.6;
 }
 .opacity-70 {
   opacity: 0.7;
@@ -1578,6 +1608,10 @@ video {
 }
 
 @media (min-width: 640px) {
+
+  .sm\:inline {
+    display: inline;
+  }
 
   .sm\:flex-row {
     flex-direction: row;
