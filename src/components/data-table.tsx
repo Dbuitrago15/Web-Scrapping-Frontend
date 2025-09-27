@@ -25,6 +25,32 @@ interface DataTableProps {
   data: ScrapingResult[]
 }
 
+// Función auxiliar para extraer horarios del objeto opening_hours
+function extractDayHours(openingHours: { [day: string]: string } | null | undefined, dayName: string): string | null {
+  if (!openingHours || typeof openingHours !== 'object') return null;
+  
+  // Buscar el día exacto o variaciones comunes
+  const dayVariations = {
+    'Monday': ['Monday', 'monday', 'Mon', 'mon'],
+    'Tuesday': ['Tuesday', 'tuesday', 'Tue', 'tue'],
+    'Wednesday': ['Wednesday', 'wednesday', 'Wed', 'wed'],
+    'Thursday': ['Thursday', 'thursday', 'Thu', 'thu'],
+    'Friday': ['Friday', 'friday', 'Fri', 'fri'],
+    'Saturday': ['Saturday', 'saturday', 'Sat', 'sat'],
+    'Sunday': ['Sunday', 'sunday', 'Sun', 'sun']
+  };
+  
+  const variations = dayVariations[dayName as keyof typeof dayVariations] || [dayName];
+  
+  for (const variation of variations) {
+    if (openingHours[variation]) {
+      return openingHours[variation];
+    }
+  }
+  
+  return null;
+}
+
 export function DataTable({ data }: DataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -33,16 +59,16 @@ export function DataTable({ data }: DataTableProps) {
 
   const columns: ColumnDef<ScrapingResult>[] = useMemo(
     () => [
-      // 1. Business Name
+      // 1. Input Business Name (What was sent)
       {
-        accessorKey: "name",
+        accessorKey: "originalData.name",
         header: ({ column }) => (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="h-auto p-0 font-semibold"
           >
-            Business Name
+            {t('table.input_name')}
             {column.getIsSorted() === "asc" ? (
               <ArrowUp className="ml-2 h-4 w-4" />
             ) : column.getIsSorted() === "desc" ? (
@@ -53,89 +79,112 @@ export function DataTable({ data }: DataTableProps) {
           </Button>
         ),
         cell: ({ row }) => {
-          const name = row.getValue("name") as string | null;
-          const hasError = row.original.error;
+          const businessName = row.original.originalData.name;
+          const scrapedStatus = row.original.scrapedData?.status;
+          
           return (
             <div className="font-medium max-w-xs">
-              {hasError ? (
-                <div className="text-red-600">
-                  ❌ {row.original.input_data.name}
-                  <div className="text-xs text-muted-foreground">
-                    {row.original.error}
-                  </div>
-                </div>
-              ) : (
-                <div className="truncate" title={name || 'N/A'}>
-                  {name || 'N/A'}
+              <div className="text-xs text-muted-foreground mb-1">{t('table.input_data')}:</div>
+              <div className="truncate font-semibold" title={businessName}>
+                {businessName}
+              </div>
+              <div className="mt-1">
+                {scrapedStatus === 'success' && (
+                  <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">✅ Success</Badge>
+                )}
+                {scrapedStatus === 'partial' && (
+                  <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 text-xs">⚠️ Partial</Badge>
+                )}
+                {scrapedStatus === 'failed' && (
+                  <Badge className="bg-red-100 text-red-800 border-red-200 text-xs">❌ Failed</Badge>
+                )}
+                {!scrapedStatus && (
+                  <Badge className="bg-gray-100 text-gray-800 border-gray-200 text-xs">⏳ Processing</Badge>
+                )}
+              </div>
+            </div>
+          );
+        },
+      },
+      // 2. Found Business Name (What was actually found on Google Maps)
+      {
+        accessorFn: (row) => row.scrapedData?.fullName,
+        id: "scraped_name",
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="h-auto p-0 font-semibold"
+          >
+            {t('table.found_name')}
+            {column.getIsSorted() === "asc" ? (
+              <ArrowUp className="ml-2 h-4 w-4" />
+            ) : column.getIsSorted() === "desc" ? (
+              <ArrowDown className="ml-2 h-4 w-4" />
+            ) : (
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            )}
+          </Button>
+        ),
+        cell: ({ row }) => {
+          const scrapedData = row.original.scrapedData;
+          
+          if (!scrapedData || scrapedData.status !== 'success') {
+            return <span className="text-muted-foreground text-sm">Not found</span>;
+          }
+          
+          return (
+            <div className="font-medium max-w-xs">
+              <div className="text-xs text-green-600 mb-1">{t('table.found_on_maps')}:</div>
+              <div className="truncate font-semibold" title={scrapedData.fullName}>
+                {scrapedData.fullName}
+              </div>
+              {scrapedData.fullAddress && (
+                <div className="text-xs text-green-600 truncate mt-1" title={scrapedData.fullAddress}>
+                  📍 {scrapedData.fullAddress}
                 </div>
               )}
             </div>
           );
         },
       },
-      // 2. Rating
+
+      // 3. Input Address (What was sent)
       {
-        accessorKey: "rating",
-        header: ({ column }) => (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="h-auto p-0 font-semibold"
-          >
-            Rating
-            {column.getIsSorted() === "asc" ? (
-              <ArrowUp className="ml-2 h-4 w-4" />
-            ) : column.getIsSorted() === "desc" ? (
-              <ArrowDown className="ml-2 h-4 w-4" />
-            ) : (
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            )}
-          </Button>
-        ),
+        accessorFn: (row) => row.originalData.address,
+        id: "input_address",
+        header: () => t('table.input_address'),
         cell: ({ row }) => {
-          const rating = row.getValue("rating") as string | null;
-          return rating ? (
-            <div className="flex items-center gap-1">
-              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-              <span className="font-medium">{rating}</span>
-            </div>
-          ) : (
-            <span className="text-muted-foreground">N/A</span>
-          );
-        },
-      },
-      // 3. Reviews Count
-      {
-        accessorKey: "reviews_count",
-        header: "Reviews",
-        cell: ({ row }) => {
-          const reviews = row.getValue("reviews_count") as string | null;
-          return reviews ? (
-            <span className="text-muted-foreground">{reviews}</span>
-          ) : (
-            <span className="text-muted-foreground">N/A</span>
-          );
-        },
-      },
-      // 4. Address
-      {
-        accessorKey: "address",
-        header: "Address",
-        cell: ({ row }) => {
-          const address = row.getValue("address") as string | null;
+          const inputAddress = row.original.originalData.address || '';
+          const inputCity = row.original.originalData.city || '';
+          const inputPostalCode = row.original.originalData.postal_code || '';
+          
           return (
-            <div className="max-w-xs truncate" title={address || 'N/A'}>
-              {address || 'N/A'}
+            <div className="max-w-xs">
+              <div className="text-xs text-muted-foreground mb-1">{t('table.input_address')}:</div>
+              <div className="truncate font-medium" title={inputAddress || 'N/A'}>
+                {inputAddress || 'N/A'}
+              </div>
+              <div className="text-xs text-muted-foreground truncate mt-1">
+                {inputCity && inputPostalCode ? `${inputCity}, ${inputPostalCode}` : 
+                 inputCity || inputPostalCode || 'N/A'}
+              </div>
             </div>
           );
         },
       },
-      // 5. Phone
+      // 4. Found Phone (From Google Maps)
       {
-        accessorKey: "phone",
-        header: "Phone",
+        accessorFn: (row) => row.scrapedData?.phone,
+        id: "phone",
+        header: () => t('table.found_phone'),
         cell: ({ row }) => {
-          const phone = row.getValue("phone") as string | null;
+          const phone = row.original.scrapedData?.phone;
+          const status = row.original.scrapedData?.status;
+          
+          if (status !== 'success') {
+            return <span className="text-muted-foreground text-sm">N/A</span>;
+          }
           return phone ? (
             <a href={`tel:${phone}`} className="text-blue-600 hover:underline">
               {phone}
@@ -145,62 +194,107 @@ export function DataTable({ data }: DataTableProps) {
           );
         },
       },
-      // 6. Website
+      // 5. Social Media Links (From Google Maps)
       {
-        accessorKey: "website",
-        header: "Website",
+        accessorFn: (row) => row.scrapedData?.socialMedia?.facebook || row.scrapedData?.socialMedia?.instagram,
+        id: "social_media",
+        header: () => "Social",
         cell: ({ row }) => {
-          const website = row.getValue("website") as string | null;
-          return website ? (
-            <a
-              href={website.startsWith('http') ? website : `https://${website}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:underline max-w-xs truncate block"
-              title={website}
-            >
-              🌐 Link
-            </a>
+          const socialMedia = row.original.scrapedData?.socialMedia;
+          const status = row.original.scrapedData?.status;
+          
+          if (status !== 'success' || !socialMedia) {
+            return <span className="text-muted-foreground text-sm">N/A</span>;
+          }
+          
+          const links = [];
+          if (socialMedia.facebook) links.push({ name: 'FB', url: socialMedia.facebook });
+          if (socialMedia.instagram) links.push({ name: 'IG', url: socialMedia.instagram });
+          if (socialMedia.twitter) links.push({ name: 'TW', url: socialMedia.twitter });
+          
+          return links.length > 0 ? (
+            <div className="flex gap-1">
+              {links.slice(0, 2).map((link, idx) => (
+                <a
+                  key={idx}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline text-xs"
+                  title={link.url}
+                >
+                  {link.name}
+                </a>
+              ))}
+            </div>
           ) : (
             <span className="text-muted-foreground">N/A</span>
           );
         },
       },
-      // 7-13. Daily Hours (NEW MAIN FEATURE)
+      // 6-12. Daily Hours (From Google Maps openingHours)
       {
-        accessorKey: "monday_hours",
+        accessorFn: (row) => extractDayHours(row.scrapedData?.openingHours, "Monday"),
+        id: "monday_hours",
         header: "Mon",
-        cell: ({ row }) => formatHours(row.getValue("monday_hours") as string | null),
+        cell: ({ getValue }) => {
+          const hours = getValue() as string | null;
+          return formatHours(hours);
+        },
       },
       {
-        accessorKey: "tuesday_hours",
+        accessorFn: (row) => extractDayHours(row.scrapedData?.openingHours, "Tuesday"),
+        id: "tuesday_hours",
         header: "Tue",
-        cell: ({ row }) => formatHours(row.getValue("tuesday_hours") as string | null),
+        cell: ({ getValue }) => {
+          const hours = getValue() as string | null;
+          return formatHours(hours);
+        },
       },
       {
-        accessorKey: "wednesday_hours",
+        accessorFn: (row) => extractDayHours(row.scrapedData?.openingHours, "Wednesday"),
+        id: "wednesday_hours",
         header: "Wed",
-        cell: ({ row }) => formatHours(row.getValue("wednesday_hours") as string | null),
+        cell: ({ getValue }) => {
+          const hours = getValue() as string | null;
+          return formatHours(hours);
+        },
       },
       {
-        accessorKey: "thursday_hours",
+        accessorFn: (row) => extractDayHours(row.scrapedData?.openingHours, "Thursday"),
+        id: "thursday_hours",
         header: "Thu",
-        cell: ({ row }) => formatHours(row.getValue("thursday_hours") as string | null),
+        cell: ({ getValue }) => {
+          const hours = getValue() as string | null;
+          return formatHours(hours);
+        },
       },
       {
-        accessorKey: "friday_hours",
+        accessorFn: (row) => extractDayHours(row.scrapedData?.openingHours, "Friday"),
+        id: "friday_hours",
         header: "Fri",
-        cell: ({ row }) => formatHours(row.getValue("friday_hours") as string | null),
+        cell: ({ getValue }) => {
+          const hours = getValue() as string | null;
+          return formatHours(hours);
+        },
       },
       {
-        accessorKey: "saturday_hours",
+        accessorFn: (row) => extractDayHours(row.scrapedData?.openingHours, "Saturday"),
+        id: "saturday_hours",
         header: "Sat",
-        cell: ({ row }) => formatHours(row.getValue("saturday_hours") as string | null),
+        cell: ({ getValue }) => {
+          const hours = getValue() as string | null;
+          return formatHours(hours);
+        },
       },
       {
-        accessorKey: "sunday_hours",
+        accessorFn: (row) => extractDayHours(row.scrapedData?.openingHours, "Sunday"),
+        id: "sunday_hours",
         header: "Sun",
-        cell: ({ row }) => formatHours(row.getValue("sunday_hours") as string | null),
+        cell: ({ getValue }) => {
+          const hours = getValue() as string | null;
+          return formatHours(hours);
+        },
       },
       // 14. Category
       {

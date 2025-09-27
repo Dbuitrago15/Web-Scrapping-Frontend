@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useCallback } from "react"
-import { ApiService, ScrapingResult as ApiScrapingResult, BatchStatus, parseProgress } from "@/lib/api"
+import { ApiService, ScrapingResult as ApiScrapingResult, BatchStatus, getProgress } from "@/lib/api"
 import { FileUploaderCard } from "@/components/file-uploader-card"
 import { ProcessingStatusCard } from "@/components/processing-status-card"
 import { CompletionCard } from "@/components/completion-card"
@@ -67,8 +67,8 @@ export default function HomePage() {
       // Intentar upload directamente - si falla, el error nos dirá por qué
       const response = await ApiService.uploadFile(file)
       
-      console.log('Upload successful, batch ID:', response.batch_id)
-      setBatchId(response.batch_id)
+      console.log('Upload successful, batch ID:', response.batchId)
+      setBatchId(response.batchId)
       setStatus('processing')
       
     } catch (error: any) {
@@ -85,9 +85,19 @@ export default function HomePage() {
   // ===============================
   const handleStatusUpdate = useCallback((batchStatus: BatchStatus) => {
     console.log('Status update received:', batchStatus)
-    // Parsear el progreso del backend
-    const parsedProgress = parseProgress(batchStatus.progress)
-    setProgress(parsedProgress)
+    // Obtener el progreso del backend (nueva estructura)
+    const progressData = getProgress(batchStatus)
+    setProgress({ completed: progressData.completed, total: progressData.total })
+    
+    // Actualizar estado si está procesando
+    if (batchStatus.status === 'processing' || batchStatus.status === 'queued') {
+      setStatus('processing')
+    }
+    
+    // Si hay resultados parciales, mostrarlos
+    if (batchStatus.results && batchStatus.results.length > 0) {
+      setResults(batchStatus.results)
+    }
   }, [])
 
   const handleProcessingComplete = useCallback((batchStatus: BatchStatus) => {

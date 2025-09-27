@@ -78,6 +78,25 @@ export type TranslationKey =
   | 'export_results'
   | 'results.title'
   | 'table.entries'
+  | 'table.search'
+  | 'table.noResults'
+  | 'table.rowsPerPage'
+  | 'table.page'
+  | 'table.of'
+  | 'table.showing'
+  | 'processing.status'
+  | 'processing.progress'
+  | 'processing.button'
+  | 'error.title'
+  | 'error.retry'
+  | 'table.input_name'
+  | 'table.found_name'
+  | 'table.input_address'
+  | 'table.found_phone'
+  | 'table.found_website'
+  | 'table.found_on_maps'
+  | 'table.input_data'
+  | 'table.normalized'
 
 const translations: Record<Language, Record<TranslationKey, string>> = {
   en: {
@@ -154,7 +173,26 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     download_csv: 'Download CSV',
     export_results: 'Export Results',
     'results.title': 'Results',
-    'table.entries': 'entries'
+    'table.entries': 'entries',
+    'table.search': 'Search...',
+    'table.noResults': 'No results found.',
+    'table.rowsPerPage': 'Rows per page',
+    'table.page': 'Page',
+    'table.of': 'of',
+    'table.showing': 'Showing',
+    'processing.status': 'Processing Status',
+    'processing.progress': 'Processing {completed} of {total}...',
+    'processing.button': 'Processing...',
+    'error.title': 'Error',
+    'error.retry': 'Retry',
+    'table.input_name': 'Input Name',
+    'table.found_name': 'Found Name',
+    'table.input_address': 'Input Address',
+    'table.found_phone': 'Found Phone',
+    'table.found_website': 'Found Website',
+    'table.found_on_maps': 'Found on Google Maps',
+    'table.input_data': 'Input',
+    'table.normalized': 'Normalized'
   },
   fr: {
     title: 'Outil de Web Scraping',
@@ -230,7 +268,26 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     download_csv: 'Télécharger CSV',
     export_results: 'Exporter les Résultats',
     'results.title': 'Résultats',
-    'table.entries': 'entrées'
+    'table.entries': 'entrées',
+    'table.search': 'Rechercher...',
+    'table.noResults': 'Aucun résultat trouvé.',
+    'table.rowsPerPage': 'Lignes par page',
+    'table.page': 'Page',
+    'table.of': 'de',
+    'table.showing': 'Affichage',
+    'processing.status': 'Statut du traitement',
+    'processing.progress': 'Traitement de {completed} sur {total}...',
+    'processing.button': 'Traitement...',
+    'error.title': 'Erreur',
+    'error.retry': 'Réessayer',
+    'table.input_name': 'Nom de saisie',
+    'table.found_name': 'Nom trouvé',
+    'table.input_address': 'Adresse de saisie',
+    'table.found_phone': 'Téléphone trouvé',
+    'table.found_website': 'Site Web trouvé',
+    'table.found_on_maps': 'Trouvé sur Google Maps',
+    'table.input_data': 'Saisie',
+    'table.normalized': 'Normalisé'
   },
   de: {
     title: 'Web Scraping Tool',
@@ -306,7 +363,26 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     download_csv: 'CSV Herunterladen',
     export_results: 'Ergebnisse Exportieren',
     'results.title': 'Ergebnisse',
-    'table.entries': 'Einträge'
+    'table.entries': 'Einträge',
+    'table.search': 'Suchen...',
+    'table.noResults': 'Keine Ergebnisse gefunden.',
+    'table.rowsPerPage': 'Zeilen pro Seite',
+    'table.page': 'Seite',
+    'table.of': 'von',
+    'table.showing': 'Anzeigen',
+    'processing.status': 'Verarbeitungsstatus',
+    'processing.progress': 'Verarbeitung von {completed} von {total}...',
+    'processing.button': 'Verarbeitung...',
+    'error.title': 'Fehler',
+    'error.retry': 'Wiederholen',
+    'table.input_name': 'Eingabename',
+    'table.found_name': 'Gefundener Name',
+    'table.input_address': 'Eingabeadresse',
+    'table.found_phone': 'Gefundenes Telefon',
+    'table.found_website': 'Gefundene Website',
+    'table.found_on_maps': 'Auf Google Maps gefunden',
+    'table.input_data': 'Eingabe',
+    'table.normalized': 'Normalisiert'
   },
   it: {
     title: 'Strumento di Web Scraping',
@@ -382,7 +458,26 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     download_csv: 'Scarica CSV',
     export_results: 'Esporta Risultati',
     'results.title': 'Risultati',
-    'table.entries': 'voci'
+    'table.entries': 'voci',
+    'table.search': 'Cerca...',
+    'table.noResults': 'Nessun risultato trovato.',
+    'table.rowsPerPage': 'Righe per pagina',
+    'table.page': 'Pagina',
+    'table.of': 'di',
+    'table.showing': 'Mostrando',
+    'processing.status': 'Stato del processo',
+    'processing.progress': 'Elaborazione di {completed} su {total}...',
+    'processing.button': 'Elaborazione...',
+    'error.title': 'Errore',
+    'error.retry': 'Riprova',
+    'table.input_name': 'Nome di input',
+    'table.found_name': 'Nome trovato',
+    'table.input_address': 'Indirizzo di input',
+    'table.found_phone': 'Telefono trovato',
+    'table.found_website': 'Sito Web trovato',
+    'table.found_on_maps': 'Trovato su Google Maps',
+    'table.input_data': 'Input',
+    'table.normalized': 'Normalizzato'
   }
 }
 
@@ -390,8 +485,16 @@ export function useTranslation() {
   const { language } = useLanguage()
   
   return useMemo(() => {
-    const t = (key: TranslationKey): string => {
-      return translations[language][key] || translations.en[key]
+    const t = (key: TranslationKey, params?: Record<string, string | number>): string => {
+      let translation = translations[language][key] || translations.en[key]
+      
+      if (params) {
+        Object.entries(params).forEach(([param, value]) => {
+          translation = translation.replace(`{${param}}`, String(value))
+        })
+      }
+      
+      return translation
     }
     
     return { t }

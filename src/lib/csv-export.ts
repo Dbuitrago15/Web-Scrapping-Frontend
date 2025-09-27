@@ -1,11 +1,37 @@
 import { ScrapingResult } from '@/lib/api'
 
+// Función para extraer horarios de un día específico del objeto opening_hours
+export function extractDayHours(openingHours: { [day: string]: string } | null | undefined, dayName: string): string {
+  if (!openingHours || typeof openingHours !== 'object') return ''
+  
+  // Buscar el día exacto o variaciones comunes
+  const dayVariations = {
+    'Monday': ['Monday', 'monday', 'Mon', 'mon'],
+    'Tuesday': ['Tuesday', 'tuesday', 'Tue', 'tue'], 
+    'Wednesday': ['Wednesday', 'wednesday', 'Wed', 'wed'],
+    'Thursday': ['Thursday', 'thursday', 'Thu', 'thu'],
+    'Friday': ['Friday', 'friday', 'Fri', 'fri'],
+    'Saturday': ['Saturday', 'saturday', 'Sat', 'sat'],
+    'Sunday': ['Sunday', 'sunday', 'Sun', 'sun']
+  }
+  
+  const variations = dayVariations[dayName as keyof typeof dayVariations] || [dayName]
+  
+  for (const variation of variations) {
+    if (openingHours[variation]) {
+      return openingHours[variation]
+    }
+  }
+  
+  return ''
+}
+
 // Función para formatear horarios en formato HH:MM - HH:MM
 export function formatHours(hours: string | null): string {
   if (!hours) return ''
   
   // Si ya está en el formato correcto, devolverlo
-  if (hours.match(/^\d{2}:\d{2}\s*-\s*\d{2}:\d{2}$/)) {
+  if (hours.match(/^\d{2}:\d{2}\s*[-–]\s*\d{2}:\d{2}$/)) {
     return hours
   }
   
@@ -14,8 +40,9 @@ export function formatHours(hours: string | null): string {
     return hours.split(',')
       .map(range => range.trim())
       .map(range => {
-        if (range.includes('-')) {
-          const [start, end] = range.split('-').map(t => t.trim())
+        if (range.includes('-') || range.includes('–')) {
+          const separator = range.includes('–') ? '–' : '-'
+          const [start, end] = range.split(separator).map(t => t.trim())
           return `${formatTime(start)} - ${formatTime(end)}`
         }
         return range
@@ -24,8 +51,9 @@ export function formatHours(hours: string | null): string {
   }
   
   // Si contiene un solo rango
-  if (hours.includes('-')) {
-    const [start, end] = hours.split('-').map(t => t.trim())
+  if (hours.includes('-') || hours.includes('–')) {
+    const separator = hours.includes('–') ? '–' : '-'
+    const [start, end] = hours.split(separator).map(t => t.trim())
     return `${formatTime(start)} - ${formatTime(end)}`
   }
   
@@ -71,17 +99,29 @@ function formatTime(time: string): string {
 
 // Función para convertir resultados a CSV
 export function convertToCSV(results: ScrapingResult[]): string {
-  if (results.length === 0) return ''
+  console.log('🔍 Converting to CSV, results count:', results.length)
+  console.log('📊 Sample result:', results[0])
   
-  // Encabezados CSV
+  if (results.length === 0) {
+    console.warn('⚠️ No results to convert to CSV')
+    return ''
+  }
+  
+  // CSV Headers - Updated for new backend structure
   const headers = [
-    'Name',
-    'Rating',
-    'Reviews Count',
+    'Input Business Name',
+    'Input Address',  
+    'Input City',
+    'Input Postal Code',
+    'Scraped Business Name',
+    'Scraped Address',
+    'Status',
     'Phone',
-    'Address', 
-    'Website',
-    'Category',
+    'Facebook',
+    'Instagram',
+    'Twitter',
+    'LinkedIn',
+    'YouTube',
     'Monday Hours',
     'Tuesday Hours',
     'Wednesday Hours',
@@ -89,34 +129,53 @@ export function convertToCSV(results: ScrapingResult[]): string {
     'Friday Hours',
     'Saturday Hours',
     'Sunday Hours',
-    'Status',
-    'Error'
-  ]
-  
-  // Convertir datos
+    'Job ID',
+    'Processing Time (ms)',
+    'Processed At'
+  ]  // Convert data - Using new backend structure
   const csvRows = [
-    headers.join(','), // Encabezados
+    headers.join(','), // Headers
     ...results.map(result => [
-      escapeCSV(result.name || ''),
-      result.rating?.toString() || '',
-      result.reviews_count?.toString() || '',
-      escapeCSV(result.phone || ''),
-      escapeCSV(result.address || ''),
-      escapeCSV(result.website || ''),
-      escapeCSV(result.category || ''),
-      escapeCSV(formatHours(result.monday_hours)),
-      escapeCSV(formatHours(result.tuesday_hours)),
-      escapeCSV(formatHours(result.wednesday_hours)),
-      escapeCSV(formatHours(result.thursday_hours)),
-      escapeCSV(formatHours(result.friday_hours)),
-      escapeCSV(formatHours(result.saturday_hours)),
-      escapeCSV(formatHours(result.sunday_hours)),
-      result.error ? 'Failed' : 'Success',
-      escapeCSV(result.error || '')
+      // INPUT DATA (Original CSV data)
+      escapeCSV(result.originalData.name || ''),                               // Input Business Name
+      escapeCSV(result.originalData.address || ''),                            // Input Address
+      escapeCSV(result.originalData.city || ''),                               // Input City
+      escapeCSV(result.originalData.postal_code || ''),                        // Input Postal Code
+      
+      // SCRAPED DATA (Real data from Google Maps)
+      escapeCSV(result.scrapedData?.fullName || ''),                           // Scraped Business Name
+      escapeCSV(result.scrapedData?.fullAddress || ''),                        // Scraped Address
+      result.scrapedData?.status || 'unknown',                                 // Status
+      escapeCSV(result.scrapedData?.phone || ''),                              // Phone
+      
+      // SOCIAL MEDIA (From Google Maps)
+      escapeCSV(result.scrapedData?.socialMedia?.facebook || ''),              // Facebook
+      escapeCSV(result.scrapedData?.socialMedia?.instagram || ''),             // Instagram
+      escapeCSV(result.scrapedData?.socialMedia?.twitter || ''),               // Twitter
+      escapeCSV(result.scrapedData?.socialMedia?.linkedin || ''),              // LinkedIn
+      escapeCSV(result.scrapedData?.socialMedia?.youtube || ''),               // YouTube
+      
+      // OPERATING HOURS (From Google Maps)
+      escapeCSV(formatHours(extractDayHours(result.scrapedData?.openingHours, 'Monday'))),    // Monday
+      escapeCSV(formatHours(extractDayHours(result.scrapedData?.openingHours, 'Tuesday'))),   // Tuesday
+      escapeCSV(formatHours(extractDayHours(result.scrapedData?.openingHours, 'Wednesday'))), // Wednesday
+      escapeCSV(formatHours(extractDayHours(result.scrapedData?.openingHours, 'Thursday'))),  // Thursday
+      escapeCSV(formatHours(extractDayHours(result.scrapedData?.openingHours, 'Friday'))),    // Friday
+      escapeCSV(formatHours(extractDayHours(result.scrapedData?.openingHours, 'Saturday'))),  // Saturday
+      escapeCSV(formatHours(extractDayHours(result.scrapedData?.openingHours, 'Sunday'))),    // Sunday
+      
+      // PROCESSING INFO
+      escapeCSV(result.jobId || ''),                                           // Job ID
+      result.processingTime?.toString() || '',                                 // Processing Time (ms)
+      escapeCSV(result.processedAt || '')                                      // Processed At
     ].join(','))
   ]
   
-  return csvRows.join('\n')
+  const csvContent = csvRows.join('\n')
+  console.log('📄 Generated CSV preview:', csvContent.substring(0, 500) + '...')
+  console.log('📊 CSV rows count:', csvRows.length)
+  
+  return csvContent
 }
 
 // Función para escapar valores CSV (manejar comas, comillas, etc.)
@@ -134,8 +193,19 @@ function escapeCSV(value: string): string {
 }
 
 // Función para descargar CSV
-export function downloadCSV(results: ScrapingResult[], filename = 'scraping-results.csv') {
+export function downloadCSV(results: ScrapingResult[], filename?: string) {
+  if (!filename) {
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-')
+    filename = `scraping-results-${timestamp}.csv`
+  }
+  
   const csvContent = convertToCSV(results)
+  
+  if (!csvContent) {
+    console.error('No data to export')
+    return
+  }
+  
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
   const link = document.createElement('a')
   
@@ -147,5 +217,6 @@ export function downloadCSV(results: ScrapingResult[], filename = 'scraping-resu
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+    URL.revokeObjectURL(url) // Limpiar memoria
   }
 }

@@ -42,14 +42,14 @@ export function usePolling({
         // Siempre llamar onStatusUpdate para actualizar el progreso
         onStatusUpdate(status)
 
-        // Verificar si el procesamiento ha terminado
-        if (status.status === 'COMPLETED') {
+        // Verificar si el procesamiento ha terminado (nuevos estados del backend Node.js)
+        if (status.status === 'completed') {
           console.log('Batch completed successfully')
           onComplete(status)
           stopPolling()
-        } else if (status.status === 'FAILED') {
-          console.log('Batch failed')
-          onError('Processing failed')
+        } else if (status.status === 'completed_with_errors') {
+          console.log('Batch completed with some errors')
+          onComplete(status) // Aún mostrar resultados parciales
           stopPolling()
         }
       } catch (error) {
