@@ -99,11 +99,15 @@ export interface ScrapingResult {
     postal_code?: string
   }
   
-  // SCRAPED DATA - Real data found on Google Maps
+  // SCRAPED DATA - Real data found on Google Maps (Updated with new fields)
   scrapedData: {
     fullName?: string
     fullAddress?: string
     phone?: string | null
+    rating?: string | null                    // ⭐ NEW: Rating/Calificación
+    reviewsCount?: string | null              // 📊 NEW: Número de reseñas
+    website?: string | null                   // 🌐 NEW: Sitio web oficial
+    category?: string | null                  // 🏷️ NEW: Categoría/tipo de negocio
     socialMedia?: {
       facebook?: string | null
       instagram?: string | null
@@ -224,6 +228,57 @@ export class ApiService {
         throw new Error('❓ Batch not found. It may have expired or been processed.')
       } else {
         throw new Error(`Failed to fetch batch status: ${error.response?.data?.message || error.message}`)
+      }
+    }
+  }
+
+  /**
+   * 🆕 Exporta y descarga CSV limpio desde el backend
+   * @param batchId - ID del batch a exportar
+   * @returns void - Inicia descarga automática del archivo
+   */
+  static async exportCleanCSV(batchId: string): Promise<void> {
+    try {
+      console.log('🎯 Starting CSV export for batch:', batchId)
+      
+      const response = await apiClient.get(`/scraping-batch/${batchId}/export`, {
+        responseType: 'blob', // Importante para archivos binarios
+        headers: {
+          'Accept': 'text/csv',
+        },
+        timeout: 60000, // 60 segundos para exportación
+      })
+
+      // Crear un blob y generar descarga automática
+      const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' })
+      const url = window.URL.createObjectURL(blob)
+      
+      // Crear elemento de descarga temporal
+      const link = document.createElement('a')
+      link.href = url
+      
+      // Generar nombre de archivo con timestamp
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-')
+      link.download = `scraping-results-${timestamp}.csv`
+      
+      // Agregar al DOM temporalmente y hacer click
+      document.body.appendChild(link)
+      link.click()
+      
+      // Limpiar
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+      
+      console.log('✅ CSV exported successfully')
+    } catch (error: any) {
+      silentError('CSV export error:', error)
+      
+      if (error.response?.status === 404) {
+        throw new Error('❓ Batch not found or expired')
+      } else if (error.response?.status === 400) {
+        throw new Error('🚫 Batch not ready for export yet')
+      } else {
+        throw new Error(`🚫 Export failed: ${error.response?.data?.message || error.message}`)
       }
     }
   }

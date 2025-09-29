@@ -196,6 +196,51 @@ export function BusinessCardDetail({ business }: BusinessCardDetailProps) {
               </div>
             </div>
           )}
+
+          {/* 🆕 NEW FIELDS: Rating & Reviews */}
+          {(business.scrapedData?.rating || business.scrapedData?.reviewsCount) && (
+            <div className="flex items-center gap-4 text-sm">
+              {business.scrapedData?.rating && (
+                <div className="flex items-center gap-1">
+                  <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                  <span className="font-medium">{business.scrapedData.rating}</span>
+                  <span className="text-muted-foreground">rating</span>
+                </div>
+              )}
+              {business.scrapedData?.reviewsCount && (
+                <div className="flex items-center gap-1">
+                  <span className="text-muted-foreground">•</span>
+                  <span className="font-medium">{business.scrapedData.reviewsCount}</span>
+                  <span className="text-muted-foreground">reviews</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 🆕 NEW FIELD: Website */}
+          {business.scrapedData?.website && (
+            <div className="flex items-center gap-2 text-sm">
+              <Globe className="h-4 w-4 text-muted-foreground" />
+              <a
+                href={business.scrapedData.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline break-all"
+              >
+                {business.scrapedData.website}
+              </a>
+            </div>
+          )}
+
+          {/* 🆕 NEW FIELD: Category */}
+          {business.scrapedData?.category && (
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground">🏷️</span>
+              <Badge variant="outline" className="font-normal">
+                {business.scrapedData.category}
+              </Badge>
+            </div>
+          )}
         </div>
 
         {/* Weekly Hours */}

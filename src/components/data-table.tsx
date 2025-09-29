@@ -149,7 +149,128 @@ export function DataTable({ data }: DataTableProps) {
         },
       },
 
-      // 3. Input Address (What was sent)
+      // 3. 🆕 Rating (New field)
+      {
+        accessorFn: (row) => row.scrapedData?.rating,
+        id: "rating",
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="h-auto p-0 font-semibold"
+          >
+            ⭐ Rating
+            {column.getIsSorted() === "asc" ? (
+              <ArrowUp className="ml-2 h-4 w-4" />
+            ) : column.getIsSorted() === "desc" ? (
+              <ArrowDown className="ml-2 h-4 w-4" />
+            ) : (
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            )}
+          </Button>
+        ),
+        cell: ({ row }) => {
+          const rating = row.original.scrapedData?.rating;
+          const status = row.original.scrapedData?.status;
+          
+          if (status !== 'success' || !rating) {
+            return <span className="text-muted-foreground text-sm">N/A</span>;
+          }
+          
+          return (
+            <div className="flex items-center gap-1">
+              <Star className="h-4 w-4 text-yellow-500 fill-current" />
+              <span className="font-medium">{rating}</span>
+            </div>
+          );
+        },
+      },
+
+      // 4. 🆕 Reviews Count (New field)
+      {
+        accessorFn: (row) => row.scrapedData?.reviewsCount,
+        id: "reviews_count",
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="h-auto p-0 font-semibold"
+          >
+            📊 Reviews
+            {column.getIsSorted() === "asc" ? (
+              <ArrowUp className="ml-2 h-4 w-4" />
+            ) : column.getIsSorted() === "desc" ? (
+              <ArrowDown className="ml-2 h-4 w-4" />
+            ) : (
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            )}
+          </Button>
+        ),
+        cell: ({ row }) => {
+          const reviewsCount = row.original.scrapedData?.reviewsCount;
+          const status = row.original.scrapedData?.status;
+          
+          if (status !== 'success' || !reviewsCount) {
+            return <span className="text-muted-foreground text-sm">N/A</span>;
+          }
+          
+          return (
+            <div className="text-sm font-medium">
+              {reviewsCount}
+            </div>
+          );
+        },
+      },
+
+      // 5. 🆕 Website (New field)
+      {
+        accessorFn: (row) => row.scrapedData?.website,
+        id: "website",
+        header: () => "🌐 Website",
+        cell: ({ row }) => {
+          const website = row.original.scrapedData?.website;
+          const status = row.original.scrapedData?.status;
+          
+          if (status !== 'success' || !website) {
+            return <span className="text-muted-foreground text-sm">N/A</span>;
+          }
+          
+          return (
+            <a
+              href={website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:underline text-sm max-w-xs truncate inline-block"
+              title={website}
+            >
+              {website.replace(/^https?:\/\//, '').split('/')[0]}
+            </a>
+          );
+        },
+      },
+
+      // 6. 🆕 Category (New field)
+      {
+        accessorFn: (row) => row.scrapedData?.category,
+        id: "category",
+        header: () => "🏷️ Category",
+        cell: ({ row }) => {
+          const category = row.original.scrapedData?.category;
+          const status = row.original.scrapedData?.status;
+          
+          if (status !== 'success' || !category) {
+            return <span className="text-muted-foreground text-sm">N/A</span>;
+          }
+          
+          return (
+            <Badge variant="outline" className="text-xs max-w-xs truncate" title={category}>
+              {category}
+            </Badge>
+          );
+        },
+      },
+
+      // 7. Input Address (What was sent)
       {
         accessorFn: (row) => row.originalData.address,
         id: "input_address",
@@ -173,7 +294,7 @@ export function DataTable({ data }: DataTableProps) {
           );
         },
       },
-      // 4. Found Phone (From Google Maps)
+      // 8. Found Phone (From Google Maps)
       {
         accessorFn: (row) => row.scrapedData?.phone,
         id: "phone",
@@ -194,7 +315,7 @@ export function DataTable({ data }: DataTableProps) {
           );
         },
       },
-      // 5. Social Media Links (From Google Maps)
+      // 9. Social Media Links (From Google Maps)
       {
         accessorFn: (row) => row.scrapedData?.socialMedia?.facebook || row.scrapedData?.socialMedia?.instagram,
         id: "social_media",
@@ -232,7 +353,7 @@ export function DataTable({ data }: DataTableProps) {
           );
         },
       },
-      // 6-12. Daily Hours (From Google Maps openingHours)
+      // 10-16. Daily Hours (From Google Maps openingHours)
       {
         accessorFn: (row) => extractDayHours(row.scrapedData?.openingHours, "Monday"),
         id: "monday_hours",
@@ -294,21 +415,6 @@ export function DataTable({ data }: DataTableProps) {
         cell: ({ getValue }) => {
           const hours = getValue() as string | null;
           return formatHours(hours);
-        },
-      },
-      // 14. Category
-      {
-        accessorKey: "category",
-        header: "Category",
-        cell: ({ row }) => {
-          const category = row.getValue("category") as string | null;
-          return category ? (
-            <Badge variant="secondary" className="max-w-xs truncate">
-              {category}
-            </Badge>
-          ) : (
-            <span className="text-muted-foreground">N/A</span>
-          );
         },
       },
     ],

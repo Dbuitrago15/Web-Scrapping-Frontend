@@ -176,6 +176,7 @@ export default function HomePage() {
         return (
           <CompletionCard
             results={results}
+            batchId={batchId || undefined}
             onViewResults={handleViewResults}
           />
         )

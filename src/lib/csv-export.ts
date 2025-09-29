@@ -1,5 +1,9 @@
 import { ScrapingResult } from '@/lib/api'
 
+// ⚠️ DEPRECATED: Este archivo se mantiene para compatibilidad
+// El backend ahora genera CSV limpio directamente con el endpoint /export
+// Ver ApiService.exportCleanCSV() en api.ts para la nueva funcionalidad
+
 // Función para extraer horarios de un día específico del objeto opening_hours
 export function extractDayHours(openingHours: { [day: string]: string } | null | undefined, dayName: string): string {
   if (!openingHours || typeof openingHours !== 'object') return ''
