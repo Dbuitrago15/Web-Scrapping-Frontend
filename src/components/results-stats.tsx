@@ -5,12 +5,14 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { CheckCircle, XCircle, Search, BarChart3 } from "lucide-react"
 import { ScrapingResult } from "@/lib/api"
+import { useTranslation } from "@/hooks/use-translation"
 
 interface ResultsStatsProps {
   results: ScrapingResult[]
 }
 
 export function ResultsStats({ results }: ResultsStatsProps) {
+  const { t } = useTranslation()
   const successful = results.filter(r => !r.error).length
   const failed = results.filter(r => r.error).length
   const total = results.length

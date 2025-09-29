@@ -4,47 +4,39 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { RefreshCw, Server, Database, Cog } from "lucide-react"
+import { RefreshCw, Server, Database, Cog, AlertCircle, CheckCircle, XCircle } from "lucide-react"
 import { useTranslation } from "@/hooks/use-translation"
-
-interface ServiceStatus {
-  api: boolean
-  redis: boolean
-  worker: boolean
-}
+import { useLanguage } from "@/contexts/language-context"
+import { ApiService, ServiceStatus } from "@/lib/api"
 
 export function BackendStatusCard() {
   const { t } = useTranslation()
+  const { language } = useLanguage()
   const [status, setStatus] = useState<ServiceStatus>({
     api: false,
     redis: false, 
-    worker: false
+    worker: false,
+    lastCheck: new Date().toISOString()
   })
   const [isChecking, setIsChecking] = useState(false)
 
   const checkBackendServices = async () => {
     setIsChecking(true)
     
-    // Check API
-    let apiStatus = false
     try {
-      const response = await fetch('http://localhost:8000/', { 
-        method: 'GET',
-        timeout: 5000 
-      } as any)
-      apiStatus = response.ok
-    } catch {
-      apiStatus = false
+      // 🆕 Usar la nueva función de verificación de servicios
+      const serviceStatus = await ApiService.checkServicesStatus()
+      setStatus(serviceStatus)
+    } catch (error) {
+      console.error('Error checking services:', error)
+      setStatus({
+        api: false,
+        redis: false,
+        worker: false,
+        lastCheck: new Date().toISOString(),
+        error: 'Error conectando con el backend'
+      })
     }
-
-    // Note: We can't directly check Redis and Celery from frontend
-    // These would need backend endpoints to report their status
-    
-    setStatus({
-      api: apiStatus,
-      redis: false, // Would need backend endpoint
-      worker: false  // Would need backend endpoint
-    })
     
     setIsChecking(false)
   }
@@ -55,19 +47,50 @@ export function BackendStatusCard() {
     return () => clearInterval(interval)
   }, [])
 
-  const getStatusBadge = (isUp: boolean, label: string) => (
-    <div className="flex items-center justify-between">
-      <span className="flex items-center gap-2">
-        {label === 'API' && <Server className="h-4 w-4" />}
-        {label === 'Redis' && <Database className="h-4 w-4" />}
-        {label === 'Worker' && <Cog className="h-4 w-4" />}
-        {label}
-      </span>
-      <Badge variant={isUp ? "default" : "destructive"}>
-        {isUp ? `✅ ${t('up')}` : `❌ ${t('down')}`}
+  const getStatusBadge = (isUp: boolean, label: string, port?: string) => (
+    <div className="flex items-center justify-between p-2 rounded border">
+      <div className="flex items-center gap-2">
+        {isUp ? (
+          <CheckCircle className="h-4 w-4 text-green-600" />
+        ) : (
+          <XCircle className="h-4 w-4 text-red-600" />
+        )}
+        {label === 'API' && <Server className="h-4 w-4 text-muted-foreground" />}
+        {label === 'Redis' && <Database className="h-4 w-4 text-muted-foreground" />}
+        {label === 'Worker' && <Cog className="h-4 w-4 text-muted-foreground" />}
+        <div>
+          <span className="font-medium">{label}</span>
+          {port && <span className="text-xs text-muted-foreground">:{port}</span>}
+        </div>
+      </div>
+      <Badge variant={isUp ? "default" : "destructive"} className="text-xs">
+        {isUp ? t('status.connected') : t('status.disconnected')}
       </Badge>
     </div>
   )
+
+  const formatLastCheck = (timestamp: string) => {
+    const date = new Date(timestamp)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffSeconds = Math.floor(diffMs / 1000)
+    
+    if (diffSeconds < 60) return t('time.seconds_ago', { seconds: diffSeconds })
+    if (diffSeconds < 3600) return t('time.minutes_ago', { minutes: Math.floor(diffSeconds / 60) })
+    
+    const localeMap: Record<string, string> = {
+      'en': 'en-US',
+      'de': 'de-DE', 
+      'fr': 'fr-FR',
+      'it': 'it-IT'
+    }
+    const locale = localeMap[language] || 'en-US'
+    
+    return date.toLocaleTimeString(locale, { 
+      hour: '2-digit', 
+      minute: '2-digit'
+    })
+  }
 
   return (
     <Card className="w-full max-w-md">
@@ -85,20 +108,39 @@ export function BackendStatusCard() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {getStatusBadge(status.api, "API")}
-        {getStatusBadge(status.redis, "Redis")}
+        {getStatusBadge(status.api, "API", "3000")}
+        {getStatusBadge(status.redis, "Redis", "6379")}
         {getStatusBadge(status.worker, "Worker")}
         
+        {/* Última verificación */}
+        <div className="text-xs text-muted-foreground">
+          {t('status.last_check')} {formatLastCheck(status.lastCheck)}
+        </div>
+        
+        {/* Mensaje de error */}
+        {status.error && (
+          <div className="flex items-center gap-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700">
+            <AlertCircle className="h-4 w-4" />
+            {status.error || t('status.error_connecting')}
+          </div>
+        )}
+        
+        {/* Instrucciones según el estado */}
         {!status.api && (
           <div className="text-xs text-muted-foreground p-2 bg-muted rounded">
-            💡 {t('start_backend')}: <code>docker-compose up --build -d</code>
+            💡 {t('status.start_backend_instruction')} <code className="bg-gray-200 px-1 rounded">docker-compose up --build -d</code>
           </div>
         )}
         
         {status.api && (!status.redis || !status.worker) && (
-          <div className="text-xs text-muted-foreground p-2 bg-muted rounded">
-            ⚠️ {t('api_running_redis_worker_unknown')} 
-            {t('check_docker_compose')} <code>docker-compose ps</code>
+          <div className="text-xs text-muted-foreground p-2 bg-yellow-50 border border-yellow-200 rounded">
+            ⚠️ {t('status.partial_services')}
+          </div>
+        )}
+
+        {status.api && status.redis && status.worker && (
+          <div className="text-xs text-green-700 p-2 bg-green-50 border border-green-200 rounded">
+            ✅ {t('status.all_services_ok')}
           </div>
         )}
       </CardContent>

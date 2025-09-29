@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios'
 import { silentLog, silentError } from './debug'
+import { TranslationKey } from '@/hooks/use-translation'
 
 // Base URL del backend - usar proxy de Next.js en desarrollo para evitar CORS
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
@@ -138,6 +139,25 @@ export interface BusinessHours {
   friday: string | null
   saturday: string | null
   sunday: string | null
+}
+
+// 🆕 Interfaces para validaciones y estado de servicios
+export interface ServiceStatus {
+  api: boolean
+  redis: boolean
+  worker: boolean
+  lastCheck: string
+  error?: string
+}
+
+export interface CSVValidationResult {
+  isValid: boolean
+  errors: string[]
+  warnings: string[]
+  rowCount: number
+  columns: string[]
+  requiredColumns: string[]
+  missingColumns: string[]
 }
 
 // Utilidad para obtener el progreso del backend (simplificada para Node.js backend)
@@ -281,6 +301,184 @@ export class ApiService {
         throw new Error(`🚫 Export failed: ${error.response?.data?.message || error.message}`)
       }
     }
+  }
+
+  /**
+   * 🆕 Valida el formato y contenido del archivo CSV
+   * @param file - Archivo CSV a validar
+   * @param t - Función de traducción (opcional)
+   * @returns Resultado de la validación
+   */
+  static async validateCSV(file: File, t?: (key: TranslationKey, params?: Record<string, string | number>) => string): Promise<CSVValidationResult> {
+    return new Promise((resolve) => {
+      const reader = new FileReader()
+      
+      reader.onload = (e) => {
+        const text = e.target?.result as string
+        const lines = text.split('\n').filter(line => line.trim())
+        
+        if (lines.length === 0) {
+          resolve({
+            isValid: false,
+            errors: [t ? t('csv.file_empty') : 'File is empty'],
+            warnings: [],
+            rowCount: 0,
+            columns: [],
+            requiredColumns: ['name', 'address', 'city'],
+            missingColumns: ['name', 'address', 'city']
+          })
+          return
+        }
+        
+        // Parse header
+        const header = lines[0].split(',').map(col => col.trim().replace(/["']/g, ''))
+        const requiredColumns = ['name', 'address', 'city']
+        const optionalColumns = ['postal_code']
+        const allValidColumns = [...requiredColumns, ...optionalColumns]
+        
+        // Validaciones
+        const errors: string[] = []
+        const warnings: string[] = []
+        const missingColumns = requiredColumns.filter(col => 
+          !header.some(h => h.toLowerCase().includes(col.toLowerCase()))
+        )
+        
+        // Validar columnas requeridas
+        if (missingColumns.length > 0) {
+          errors.push(t ? t('csv.required_columns_missing', { columns: missingColumns.join(', ') }) : `Missing required columns: ${missingColumns.join(', ')}`)
+        }
+        
+        // Validar número mínimo de filas
+        if (lines.length < 2) {
+          errors.push(t ? t('csv.minimum_rows_required') : 'CSV must have at least one data row besides the header')
+        }
+        
+        // Validar número máximo de filas (límite recomendado)
+        if (lines.length > 1001) { // 1000 + header
+          warnings.push(t ? t('csv.maximum_rows_warning', { count: lines.length - 1 }) : `File has ${lines.length - 1} rows. Maximum 1000 recommended for better performance`)
+        }
+        
+        // Validar formato de datos (muestra de las primeras 5 filas)
+        const sampleRows = lines.slice(1, 6)
+        sampleRows.forEach((row, index) => {
+          const cells = row.split(',')
+          if (cells.length !== header.length) {
+            errors.push(t ? t('csv.column_mismatch', { row: index + 2, actual: cells.length, expected: header.length }) : `Row ${index + 2}: Number of columns does not match header (${cells.length} vs ${header.length})`)
+          }
+          
+          // Validar que el nombre no esté vacío
+          const nameIndex = header.findIndex(h => h.toLowerCase().includes('name'))
+          if (nameIndex >= 0 && (!cells[nameIndex] || cells[nameIndex].trim().replace(/["']/g, '') === '')) {
+            errors.push(t ? t('csv.empty_business_name', { row: index + 2 }) : `Row ${index + 2}: Business name cannot be empty`)
+          }
+        })
+        
+        resolve({
+          isValid: errors.length === 0,
+          errors,
+          warnings,
+          rowCount: lines.length - 1,
+          columns: header,
+          requiredColumns,
+          missingColumns
+        })
+      }
+      
+      reader.onerror = () => {
+        resolve({
+          isValid: false,
+          errors: [t ? t('csv.file_read_error') : 'Error reading file'],
+          warnings: [],
+          rowCount: 0,
+          columns: [],
+          requiredColumns: ['name', 'address', 'city'],
+          missingColumns: ['name', 'address', 'city']
+        })
+      }
+      
+      reader.readAsText(file)
+    })
+  }
+
+  /**
+   * 🆕 Genera y descarga una plantilla CSV de ejemplo
+   * @returns void - Inicia descarga del archivo plantilla
+   */
+  static downloadCSVTemplate(): void {
+    const template = [
+      'name,address,city,postal_code',
+      'McDonald\'s Bahnhofstrasse,"Bahnhofstrasse 120",Zürich,8001',
+      'Starbucks Paradeplatz,"Paradeplatz 4",Zürich,8001',
+      'Burger King Limmatquai,"Limmatquai 66",Zürich,8001'
+    ].join('\n')
+    
+    const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' })
+    const url = window.URL.createObjectURL(blob)
+    
+    const link = document.createElement('a')
+    link.href = url
+    link.download = 'plantilla-scraping.csv'
+    
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+    
+    console.log('✅ Plantilla CSV descargada')
+  }
+
+  /**
+   * 🆕 Verifica el estado real de todos los servicios del backend
+   * @returns Estado detallado de cada servicio
+   */
+  static async checkServicesStatus(): Promise<ServiceStatus> {
+    const result: ServiceStatus = {
+      api: false,
+      redis: false,
+      worker: false,
+      lastCheck: new Date().toISOString(),
+      error: undefined
+    }
+    
+    try {
+      // 1. Verificar API (puerto 3000)
+      const apiResponse = await fetch('/health', {
+        method: 'GET',
+        timeout: 5000,
+      })
+      result.api = apiResponse.ok && apiResponse.status === 200
+      
+      // 2. Si la API está up, verificar Redis y Worker a través de endpoints específicos
+      if (result.api) {
+        try {
+          // Verificar Redis a través de endpoint del API
+          const redisResponse = await fetch('/health/redis', {
+            method: 'GET',
+            timeout: 3000,
+          })
+          result.redis = redisResponse.ok
+        } catch {
+          result.redis = false
+        }
+        
+        try {
+          // Verificar Worker a través de endpoint del API
+          const workerResponse = await fetch('/health/worker', {
+            method: 'GET',
+            timeout: 3000,
+          })
+          result.worker = workerResponse.ok
+        } catch {
+          result.worker = false
+        }
+      }
+      
+    } catch (error: any) {
+      result.error = error.message
+      console.error('Error checking services:', error)
+    }
+    
+    return result
   }
 
   /**

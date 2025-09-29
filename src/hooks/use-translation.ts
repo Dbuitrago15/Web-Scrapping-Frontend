@@ -97,6 +97,35 @@ export type TranslationKey =
   | 'table.found_on_maps'
   | 'table.input_data'
   | 'table.normalized'
+  | 'csv.download_template'
+  | 'csv.validating'
+  | 'csv.valid'
+  | 'csv.invalid'
+  | 'csv.rows_data'
+  | 'csv.errors'
+  | 'csv.warnings'
+  | 'csv.columns_detected'
+  | 'csv.invalid_file'
+  | 'csv.validation_error'
+  | 'csv.file_empty'
+  | 'csv.minimum_rows_required'
+  | 'csv.maximum_rows_warning'
+  | 'csv.column_mismatch'
+  | 'csv.required_columns_missing'
+  | 'csv.empty_business_name'
+  | 'csv.file_read_error'
+  | 'csv.required_columns_info'
+  | 'processing.records_processed'
+  | 'time.seconds_ago'
+  | 'time.minutes_ago'
+  | 'time.never'
+  | 'status.connected'
+  | 'status.disconnected'
+  | 'status.last_check'
+  | 'status.error_connecting'
+  | 'status.start_backend_instruction'
+  | 'status.partial_services'
+  | 'status.all_services_ok'
 
 const translations: Record<Language, Record<TranslationKey, string>> = {
   en: {
@@ -192,7 +221,36 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     'table.found_website': 'Found Website',
     'table.found_on_maps': 'Found on Google Maps',
     'table.input_data': 'Input',
-    'table.normalized': 'Normalized'
+    'table.normalized': 'Normalized',
+    'csv.file_empty': 'File is empty',
+    'csv.minimum_rows_required': 'CSV must have at least one data row besides the header',
+    'csv.maximum_rows_warning': 'File has {count} rows. Maximum 1000 recommended for better performance',
+    'csv.column_mismatch': 'Row {row}: Number of columns does not match header ({actual} vs {expected})',
+    'csv.required_columns_missing': 'Missing required columns: {columns}',
+    'csv.empty_business_name': 'Row {row}: Business name cannot be empty',
+    'csv.file_read_error': 'Error reading file',
+    'csv.download_template': 'Download CSV Template',
+    'csv.validating': 'Validating...',
+    'csv.valid': 'Valid',
+    'csv.invalid': 'Invalid',
+    'csv.rows_data': 'rows of data',
+    'csv.errors': 'Errors:',
+    'csv.warnings': 'Warnings:',
+    'csv.columns_detected': 'Detected columns:',
+    'csv.invalid_file': 'Invalid File',
+    'csv.validation_error': 'Error validating file',
+    'csv.required_columns_info': 'Required columns: {columns}. Optional: {optional}',
+    'processing.records_processed': '{completed} of {total} records processed',
+    'time.seconds_ago': '{seconds} seconds ago',
+    'time.minutes_ago': '{minutes} minutes ago',
+    'time.never': 'Never',
+    'status.connected': 'Connected',
+    'status.disconnected': 'Disconnected',
+    'status.last_check': 'Last check:',
+    'status.error_connecting': 'Error connecting to backend',
+    'status.start_backend_instruction': 'Start backend:',
+    'status.partial_services': 'API running but dependent services might be disconnected',
+    'status.all_services_ok': 'All services running correctly'
   },
   fr: {
     title: 'Outil de Web Scraping',
@@ -287,7 +345,36 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     'table.found_website': 'Site Web trouvé',
     'table.found_on_maps': 'Trouvé sur Google Maps',
     'table.input_data': 'Saisie',
-    'table.normalized': 'Normalisé'
+    'table.normalized': 'Normalisé',
+    'csv.file_empty': 'Le fichier est vide',
+    'csv.minimum_rows_required': 'Le CSV doit avoir au moins une ligne de données en plus de l\'en-tête',
+    'csv.maximum_rows_warning': 'Le fichier a {count} lignes. Maximum 1000 recommandé pour de meilleures performances',
+    'csv.column_mismatch': 'Ligne {row} : Le nombre de colonnes ne correspond pas à l\'en-tête ({actual} contre {expected})',
+    'csv.required_columns_missing': 'Colonnes requises manquantes : {columns}',
+    'csv.empty_business_name': 'Ligne {row} : Le nom de l\'entreprise ne peut pas être vide',
+    'csv.file_read_error': 'Erreur lors de la lecture du fichier',
+    'csv.download_template': 'Télécharger le Modèle CSV',
+    'csv.validating': 'Validation...',
+    'csv.valid': 'Valide',
+    'csv.invalid': 'Invalide',
+    'csv.rows_data': 'lignes de données',
+    'csv.errors': 'Erreurs :',
+    'csv.warnings': 'Avertissements :',
+    'csv.columns_detected': 'Colonnes détectées :',
+    'csv.invalid_file': 'Fichier Invalide',
+    'csv.validation_error': 'Erreur de validation du fichier',
+    'csv.required_columns_info': 'Colonnes requises : {columns}. Optionnel : {optional}',
+    'processing.records_processed': '{completed} sur {total} enregistrements traités',
+    'time.seconds_ago': 'il y a {seconds} secondes',
+    'time.minutes_ago': 'il y a {minutes} minutes',
+    'time.never': 'Jamais',
+    'status.connected': 'Connecté',
+    'status.disconnected': 'Déconnecté',
+    'status.last_check': 'Dernière vérification :',
+    'status.error_connecting': 'Erreur de connexion au backend',
+    'status.start_backend_instruction': 'Démarrer le backend :',
+    'status.partial_services': 'L\'API fonctionne mais les services dépendants pourraient être déconnectés',
+    'status.all_services_ok': 'Tous les services fonctionnent correctement'
   },
   de: {
     title: 'Web Scraping Tool',
@@ -382,7 +469,36 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     'table.found_website': 'Gefundene Website',
     'table.found_on_maps': 'Auf Google Maps gefunden',
     'table.input_data': 'Eingabe',
-    'table.normalized': 'Normalisiert'
+    'table.normalized': 'Normalisiert',
+    'csv.file_empty': 'Datei ist leer',
+    'csv.minimum_rows_required': 'CSV muss mindestens eine Datenzeile neben der Kopfzeile haben',
+    'csv.maximum_rows_warning': 'Datei hat {count} Zeilen. Maximum 1000 für bessere Leistung empfohlen',
+    'csv.column_mismatch': 'Zeile {row}: Anzahl der Spalten stimmt nicht mit der Kopfzeile überein ({actual} vs {expected})',
+    'csv.required_columns_missing': 'Fehlende erforderliche Spalten: {columns}',
+    'csv.empty_business_name': 'Zeile {row}: Firmenname darf nicht leer sein',
+    'csv.file_read_error': 'Fehler beim Lesen der Datei',
+    'csv.download_template': 'CSV-Vorlage herunterladen',
+    'csv.validating': 'Validierung...',
+    'csv.valid': 'Gültig',
+    'csv.invalid': 'Ungültig',
+    'csv.rows_data': 'Datenzeilen',
+    'csv.errors': 'Fehler:',
+    'csv.warnings': 'Warnungen:',
+    'csv.columns_detected': 'Erkannte Spalten:',
+    'csv.invalid_file': 'Ungültige Datei',
+    'csv.validation_error': 'Fehler bei der Dateivalididierung',
+    'csv.required_columns_info': 'Erforderliche Spalten: {columns}. Optional: {optional}',
+    'processing.records_processed': '{completed} von {total} Datensätzen verarbeitet',
+    'time.seconds_ago': 'vor {seconds} Sekunden',
+    'time.minutes_ago': 'vor {minutes} Minuten',
+    'time.never': 'Niemals',
+    'status.connected': 'Verbunden',
+    'status.disconnected': 'Getrennt',
+    'status.last_check': 'Letzte Überprüfung:',
+    'status.error_connecting': 'Fehler beim Verbinden mit dem Backend',
+    'status.start_backend_instruction': 'Backend starten:',
+    'status.partial_services': 'API läuft, aber abhängige Dienste könnten getrennt sein',
+    'status.all_services_ok': 'Alle Dienste laufen korrekt'
   },
   it: {
     title: 'Strumento di Web Scraping',
@@ -477,7 +593,36 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     'table.found_website': 'Sito Web trovato',
     'table.found_on_maps': 'Trovato su Google Maps',
     'table.input_data': 'Input',
-    'table.normalized': 'Normalizzato'
+    'table.normalized': 'Normalizzato',
+    'csv.file_empty': 'Il file è vuoto',
+    'csv.minimum_rows_required': 'Il CSV deve avere almeno una riga di dati oltre all\'intestazione',
+    'csv.maximum_rows_warning': 'Il file ha {count} righe. Massimo 1000 raccomandato per prestazioni migliori',
+    'csv.column_mismatch': 'Riga {row}: Il numero di colonne non corrisponde all\'intestazione ({actual} vs {expected})',
+    'csv.required_columns_missing': 'Colonne richieste mancanti: {columns}',
+    'csv.empty_business_name': 'Riga {row}: Il nome dell\'azienda non può essere vuoto',
+    'csv.file_read_error': 'Errore nella lettura del file',
+    'csv.download_template': 'Scarica Modello CSV',
+    'csv.validating': 'Validazione...',
+    'csv.valid': 'Valido',
+    'csv.invalid': 'Non Valido',
+    'csv.rows_data': 'righe di dati',
+    'csv.errors': 'Errori:',
+    'csv.warnings': 'Avvisi:',
+    'csv.columns_detected': 'Colonne rilevate:',
+    'csv.invalid_file': 'File Non Valido',
+    'csv.validation_error': 'Errore nella validazione del file',
+    'csv.required_columns_info': 'Colonne richieste: {columns}. Opzionale: {optional}',
+    'processing.records_processed': '{completed} di {total} record elaborati',
+    'time.seconds_ago': '{seconds} secondi fa',
+    'time.minutes_ago': '{minutes} minuti fa',
+    'time.never': 'Mai',
+    'status.connected': 'Connesso',
+    'status.disconnected': 'Disconnesso',
+    'status.last_check': 'Ultima verifica:',
+    'status.error_connecting': 'Errore di connessione al backend',
+    'status.start_backend_instruction': 'Avvia backend:',
+    'status.partial_services': 'API in esecuzione ma i servizi dipendenti potrebbero essere disconnessi',
+    'status.all_services_ok': 'Tutti i servizi funzionano correttamente'
   }
 }
 

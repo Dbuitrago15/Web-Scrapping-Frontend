@@ -23,8 +23,8 @@ export function ResultsModal({ isOpen, onClose, data }: ResultsModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden">
-        <DialogHeader>
+      <DialogContent className="max-w-7xl max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl">
               {t("results.title")} ({data.length} {t("table.entries")})
@@ -35,7 +35,7 @@ export function ResultsModal({ isOpen, onClose, data }: ResultsModalProps) {
             </Button>
           </div>
         </DialogHeader>
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-auto min-h-0">
           <DataTable data={data} />
         </div>
       </DialogContent>

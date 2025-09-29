@@ -358,6 +358,7 @@ export function DataTable({ data }: DataTableProps) {
         accessorFn: (row) => extractDayHours(row.scrapedData?.openingHours, "Monday"),
         id: "monday_hours",
         header: "Mon",
+        size: 120,
         cell: ({ getValue }) => {
           const hours = getValue() as string | null;
           return formatHours(hours);
@@ -367,6 +368,7 @@ export function DataTable({ data }: DataTableProps) {
         accessorFn: (row) => extractDayHours(row.scrapedData?.openingHours, "Tuesday"),
         id: "tuesday_hours",
         header: "Tue",
+        size: 120,
         cell: ({ getValue }) => {
           const hours = getValue() as string | null;
           return formatHours(hours);
@@ -376,6 +378,7 @@ export function DataTable({ data }: DataTableProps) {
         accessorFn: (row) => extractDayHours(row.scrapedData?.openingHours, "Wednesday"),
         id: "wednesday_hours",
         header: "Wed",
+        size: 120,
         cell: ({ getValue }) => {
           const hours = getValue() as string | null;
           return formatHours(hours);
@@ -385,6 +388,7 @@ export function DataTable({ data }: DataTableProps) {
         accessorFn: (row) => extractDayHours(row.scrapedData?.openingHours, "Thursday"),
         id: "thursday_hours",
         header: "Thu",
+        size: 120,
         cell: ({ getValue }) => {
           const hours = getValue() as string | null;
           return formatHours(hours);
@@ -394,6 +398,7 @@ export function DataTable({ data }: DataTableProps) {
         accessorFn: (row) => extractDayHours(row.scrapedData?.openingHours, "Friday"),
         id: "friday_hours",
         header: "Fri",
+        size: 120,
         cell: ({ getValue }) => {
           const hours = getValue() as string | null;
           return formatHours(hours);
@@ -403,6 +408,7 @@ export function DataTable({ data }: DataTableProps) {
         accessorFn: (row) => extractDayHours(row.scrapedData?.openingHours, "Saturday"),
         id: "saturday_hours",
         header: "Sat",
+        size: 120,
         cell: ({ getValue }) => {
           const hours = getValue() as string | null;
           return formatHours(hours);
@@ -412,6 +418,7 @@ export function DataTable({ data }: DataTableProps) {
         accessorFn: (row) => extractDayHours(row.scrapedData?.openingHours, "Sunday"),
         id: "sunday_hours",
         header: "Sun",
+        size: 120,
         cell: ({ getValue }) => {
           const hours = getValue() as string | null;
           return formatHours(hours);
@@ -421,7 +428,7 @@ export function DataTable({ data }: DataTableProps) {
     [t],
   )
 
-  // Helper function to format hours display
+  // Helper function to format hours display in HH:MM - HH:MM format
   const formatHours = (hours: string | null): JSX.Element => {
     if (!hours) {
       return <span className="text-muted-foreground text-xs">N/A</span>;
@@ -436,11 +443,62 @@ export function DataTable({ data }: DataTableProps) {
       return <span className="text-green-500 text-xs">🟢 24h</span>;
     }
     
+    // Convert to HH:MM - HH:MM format
+    const formattedHours = convertToStandardFormat(hours);
+    
     return (
-      <span className="text-blue-600 text-xs max-w-20 truncate block" title={hours}>
-        🟡 {hours}
-      </span>
+      <div className="text-blue-600 text-xs whitespace-nowrap" title={hours}>
+        {formattedHours}
+      </div>
     );
+  }
+
+  // Function to convert hours to HH:MM - HH:MM format
+  const convertToStandardFormat = (hours: string): string => {
+    if (!hours) return 'N/A';
+    
+    try {
+      // Handle common patterns and convert to HH:MM - HH:MM
+      let converted = hours
+        // Convert AM/PM to 24h format patterns
+        .replace(/(\d{1,2}):(\d{2})\s*AM/gi, (match, h, m) => {
+          const hour = parseInt(h);
+          return `${hour === 12 ? '00' : hour.toString().padStart(2, '0')}:${m}`;
+        })
+        .replace(/(\d{1,2}):(\d{2})\s*PM/gi, (match, h, m) => {
+          const hour = parseInt(h);
+          return `${hour === 12 ? '12' : (hour + 12).toString().padStart(2, '0')}:${m}`;
+        })
+        // Handle times without minutes (e.g., "9 AM")
+        .replace(/(\d{1,2})\s*AM/gi, (match, h) => {
+          const hour = parseInt(h);
+          return `${hour === 12 ? '00' : hour.toString().padStart(2, '0')}:00`;
+        })
+        .replace(/(\d{1,2})\s*PM/gi, (match, h) => {
+          const hour = parseInt(h);
+          return `${hour === 12 ? '12' : (hour + 12).toString().padStart(2, '0')}:00`;
+        })
+        // Convert single digit hours to double digit
+        .replace(/\b(\d):(\d{2})/g, '0$1:$2')
+        // Replace various separators with standard dash
+        .replace(/\s*[–—−~]\.?\s*/g, ' - ')
+        .replace(/\s*to\s*/gi, ' - ')
+        .replace(/\s*hasta\s*/gi, ' - ')
+        .replace(/\s*a\s*/gi, ' - ')
+        // Clean up extra spaces
+        .replace(/\s+/g, ' ')
+        .trim();
+      
+      // Handle multiple time ranges (like lunch breaks)
+      if (converted.includes(',') || converted.includes('&') || converted.includes('y')) {
+        converted = converted.replace(/[,&y]/g, ' & ').replace(/\s+&\s+/g, ' & ');
+      }
+      
+      return converted || hours; // Return original if conversion fails
+    } catch (error) {
+      console.warn('Error formatting hours:', hours, error);
+      return hours; // Return original if any error occurs
+    }
   }
 
   const table = useReactTable({
@@ -481,9 +539,9 @@ export function DataTable({ data }: DataTableProps) {
       </div>
 
       {/* Table */}
-      <div className="rounded-md border">
+      <div className="rounded-md border overflow-auto max-h-[60vh]">
         <Table>
-          <TableHeader>
+          <TableHeader className="sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {

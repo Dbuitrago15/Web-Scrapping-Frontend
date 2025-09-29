@@ -47,7 +47,10 @@ export function ProcessingStatusCard({ progress }: ProcessingStatusCardProps) {
         
         {progress.total > 0 && (
           <div className="text-center text-sm text-muted-foreground">
-            {progress.completed} / {progress.total} records processed
+            {t('processing.records_processed', { 
+              completed: progress.completed, 
+              total: progress.total 
+            })}
           </div>
         )}
       </CardContent>
