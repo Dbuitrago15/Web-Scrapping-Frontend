@@ -82,7 +82,7 @@ export function CompletionCard({ results, batchId, onViewResults }: CompletionCa
             ) : (
               <>
                 <Download className="h-4 w-4 mr-2" />
-                {batchId ? 'Download Clean CSV' : t('download_csv')}
+                {batchId ? t('results.download_clean_csv') : t('download_csv')}
               </>
             )}
           </Button>

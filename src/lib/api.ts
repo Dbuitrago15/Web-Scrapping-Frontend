@@ -142,10 +142,70 @@ export interface BusinessHours {
 }
 
 // 🆕 Interfaces para validaciones y estado de servicios
+export interface RedisHealthDetails {
+  status: string
+  service: string
+  timestamp: string
+  responseTime: string
+  connection: {
+    status: string
+    queue_accessible: boolean
+  }
+  operations: {
+    queue_stats: string
+    job_creation: string
+    job_removal: string
+  }
+  queue_stats: {
+    waiting: number
+    active: number
+    completed: number
+    failed: number
+    paused: number
+  }
+  waiting_jobs: number
+}
+
+export interface WorkerHealthDetails {
+  status: string
+  service: string
+  timestamp: string
+  responseTime: string
+  reason: string
+  queue_statistics: {
+    waiting: number
+    active: number
+    completed: number
+    failed: number
+    delayed: number
+  }
+  active_jobs: {
+    count: number
+    jobs: any[]
+  }
+  recent_activity: {
+    completed_last_5min: number
+    last_completed: {
+      id: string
+      completedAt: string
+      processingTime: number
+    } | null
+    last_failed: any | null
+  }
+}
+
+export interface ServiceHealth {
+  status: 'healthy' | 'degraded' | 'unhealthy'
+  service: string
+  responseTime?: string
+  reason?: string
+  details?: RedisHealthDetails | WorkerHealthDetails | any
+}
+
 export interface ServiceStatus {
-  api: boolean
-  redis: boolean
-  worker: boolean
+  api: ServiceHealth
+  redis: ServiceHealth
+  worker: ServiceHealth
   lastCheck: string
   error?: string
 }
@@ -184,24 +244,22 @@ export class ApiService {
     try {
       console.log('🚀 Starting file upload:')
       console.log('📄 File:', file.name, 'Size:', file.size, 'Type:', file.type)
-      console.log('🌐 Full URL will be:', `${API_BASE_URL}/scraping-batch`)
-      console.log('🔗 Axios baseURL:', apiClient.defaults.baseURL)
+      console.log('🌐 Using proxy endpoint: /api/v1/scraping-batch')
       
-      const response: AxiosResponse<BatchUploadResponse> = await apiClient.post('/scraping-batch', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        timeout: 120000, // 2 minutos para uploads
-        onUploadProgress: (progressEvent) => {
-          if (progressEvent.total) {
-            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
-            console.log('Upload progress:', percentCompleted + '%')
-          }
-        }
+      const response = await fetch('/api/v1/scraping-batch', {
+        method: 'POST',
+        body: formData,
       })
       
-      console.log('Upload successful:', response.data)
-      return response.data
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('Upload failed:', response.status, errorText)
+        throw new Error(`HTTP ${response.status}: ${errorText}`)
+      }
+      
+      const data: BatchUploadResponse = await response.json()
+      console.log('Upload successful:', data)
+      return data
     } catch (error: any) {
       silentError('Upload error details:', {
         message: error.message,
@@ -220,14 +278,14 @@ export class ApiService {
         throw new Error('📦 File too large')
       } else if (error.response?.status === 415) {
         throw new Error('📄 Invalid file type - only CSV files are allowed')
-      } else if (error.response?.status === 404) {
+      } else if (error.message?.includes('HTTP 404')) {
         throw new Error('🔍 Backend endpoint not found. Make sure backend is running and accessible.')
-      } else if (error.code === 'ERR_NETWORK' || error.message?.includes('CORS')) {
+      } else if (error.message?.includes('CORS')) {
         throw new Error('🌐 CORS Error: Backend needs CORS configuration. The backend is running but blocking browser requests.')
-      } else if (error.name === 'AxiosError' && !error.response) {
+      } else if (error.message?.includes('Failed to fetch')) {
         throw new Error('🔒 Connection blocked - possible CORS issue. Backend is running but not accessible from browser.')
       } else {
-        throw new Error(error.response?.data?.message || `🚫 Upload failed: ${error.message}`)
+        throw new Error(`🚫 Upload failed: ${error.message}`)
       }
     }
   }
@@ -239,16 +297,25 @@ export class ApiService {
    */
   static async getBatchStatus(batchId: string): Promise<BatchStatus> {
     try {
-      const response: AxiosResponse<BatchStatus> = await apiClient.get(`/scraping-batch/${batchId}`)
-      return response.data
+      const response = await fetch(`/api/v1/scraping-batch/${batchId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('❓ Batch not found. It may have expired or been processed.')
+        }
+        throw new Error(`HTTP ${response.status}: Failed to fetch batch status`)
+      }
+      
+      const data: BatchStatus = await response.json()
+      return data
     } catch (error: any) {
       silentError('Error fetching batch status:', error)
-      
-      if (error.response?.status === 404) {
-        throw new Error('❓ Batch not found. It may have expired or been processed.')
-      } else {
-        throw new Error(`Failed to fetch batch status: ${error.response?.data?.message || error.message}`)
-      }
+      throw new Error(`Failed to fetch batch status: ${error.message}`)
     }
   }
 
@@ -433,48 +500,124 @@ export class ApiService {
    */
   static async checkServicesStatus(): Promise<ServiceStatus> {
     const result: ServiceStatus = {
-      api: false,
-      redis: false,
-      worker: false,
+      api: {
+        status: 'unhealthy',
+        service: 'api'
+      },
+      redis: {
+        status: 'unhealthy',
+        service: 'redis'
+      },
+      worker: {
+        status: 'unhealthy',
+        service: 'worker'
+      },
       lastCheck: new Date().toISOString(),
       error: undefined
     }
     
     try {
-      // 1. Verificar API (puerto 3000)
-      const apiResponse = await fetch('/health', {
+      // 1. Verificar API general (puerto 3000)  
+      const startTime = Date.now()
+      const apiResponse = await fetch('/api/v1/health', {
         method: 'GET',
-        timeout: 5000,
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
       })
-      result.api = apiResponse.ok && apiResponse.status === 200
       
-      // 2. Si la API está up, verificar Redis y Worker a través de endpoints específicos
-      if (result.api) {
-        try {
-          // Verificar Redis a través de endpoint del API
-          const redisResponse = await fetch('/health/redis', {
-            method: 'GET',
-            timeout: 3000,
-          })
-          result.redis = redisResponse.ok
-        } catch {
-          result.redis = false
+      if (apiResponse.ok) {
+        const apiData = await apiResponse.json()
+        result.api = {
+          status: 'healthy',
+          service: 'api',
+          responseTime: `${Date.now() - startTime}ms`,
+          details: apiData
         }
         
+        // 2. Verificar Redis a través de endpoint específico
         try {
-          // Verificar Worker a través de endpoint del API
-          const workerResponse = await fetch('/health/worker', {
+          const redisResponse = await fetch('/api/v1/health/redis', {
             method: 'GET',
-            timeout: 3000,
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            }
           })
-          result.worker = workerResponse.ok
-        } catch {
-          result.worker = false
+          
+          if (redisResponse.ok) {
+            const redisData: RedisHealthDetails = await redisResponse.json()
+            result.redis = {
+              status: redisData.status as 'healthy' | 'degraded' | 'unhealthy',
+              service: 'redis',
+              responseTime: redisData.responseTime,
+              details: redisData
+            }
+          } else {
+            result.redis = {
+              status: 'unhealthy',
+              service: 'redis',
+              reason: `HTTP ${redisResponse.status}`
+            }
+          }
+        } catch (error) {
+          result.redis = {
+            status: 'unhealthy',
+            service: 'redis',
+            reason: 'Connection failed'
+          }
+        }
+        
+        // 3. Verificar Worker a través de endpoint específico
+        try {
+          const workerResponse = await fetch('/api/v1/health/worker', {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            }
+          })
+          
+          if (workerResponse.ok) {
+            const workerData: WorkerHealthDetails = await workerResponse.json()
+            result.worker = {
+              status: workerData.status as 'healthy' | 'degraded' | 'unhealthy',
+              service: 'worker',
+              responseTime: workerData.responseTime,
+              reason: workerData.reason,
+              details: workerData
+            }
+          } else {
+            result.worker = {
+              status: 'unhealthy',
+              service: 'worker',
+              reason: `HTTP ${workerResponse.status}`
+            }
+          }
+        } catch (error) {
+          result.worker = {
+            status: 'unhealthy',
+            service: 'worker',
+            reason: 'Connection failed'
+          }
+        }
+      } else {
+        result.api = {
+          status: 'unhealthy',
+          service: 'api',
+          reason: `HTTP ${apiResponse.status}`,
+          responseTime: `${Date.now() - startTime}ms`
         }
       }
       
     } catch (error: any) {
       result.error = error.message
+      result.api = {
+        status: 'unhealthy',
+        service: 'api',
+        reason: error.message
+      }
       console.error('Error checking services:', error)
     }
     

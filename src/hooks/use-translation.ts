@@ -126,6 +126,33 @@ export type TranslationKey =
   | 'status.start_backend_instruction'
   | 'status.partial_services'
   | 'status.all_services_ok'
+  | 'status.degraded'
+  | 'status.response_time'
+  | 'status.queue_stats'
+  | 'status.recent_activity'
+  | 'status.connection'
+  | 'status.queue_access'
+  | 'status.active_jobs'
+  | 'status.completed_jobs'
+  | 'status.waiting_jobs'
+  | 'status.failed_jobs'
+  | 'status.last_job_time'
+  | 'status.accessible'
+  | 'status.blocked'
+  | 'results.success_rate_good'
+  | 'results.success_rate_fair'
+  | 'results.success_rate_low'
+  | 'results.industry_average'
+  | 'results.complete_data_extracted'
+  | 'results.no_data_found'
+  | 'results.businesses_searched'
+  | 'results.google_maps_queries'
+  | 'results.error_analysis'
+  | 'results.not_found_on_maps'
+  | 'results.all_strategies_failed'
+  | 'results.other_errors'
+  | 'results.success_tip'
+  | 'results.download_clean_csv'
 
 const translations: Record<Language, Record<TranslationKey, string>> = {
   en: {
@@ -250,7 +277,34 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     'status.error_connecting': 'Error connecting to backend',
     'status.start_backend_instruction': 'Start backend:',
     'status.partial_services': 'API running but dependent services might be disconnected',
-    'status.all_services_ok': 'All services running correctly'
+    'status.all_services_ok': 'All services running correctly',
+    'status.degraded': 'Degraded',
+    'status.response_time': 'Response time',
+    'status.queue_stats': 'Queue stats',
+    'status.recent_activity': 'Recent activity',
+    'status.connection': 'Connection',
+    'status.queue_access': 'Queue Access',
+    'status.active_jobs': 'Active Jobs',
+    'status.completed_jobs': 'Completed',
+    'status.waiting_jobs': 'Waiting',
+    'status.failed_jobs': 'Failed',
+    'status.last_job_time': 'Last Job Time',
+    'status.accessible': 'Accessible',
+    'status.blocked': 'Blocked',
+    'results.success_rate_good': 'Good',
+    'results.success_rate_fair': 'Fair',
+    'results.success_rate_low': 'Low',
+    'results.industry_average': 'Industry average: ~50%',
+    'results.complete_data_extracted': 'Complete data extracted',
+    'results.no_data_found': 'No data found',
+    'results.businesses_searched': 'Businesses searched',
+    'results.google_maps_queries': 'Google Maps queries',
+    'results.error_analysis': 'Error Analysis',
+    'results.not_found_on_maps': 'Not found on Google Maps',
+    'results.all_strategies_failed': 'All search strategies failed',
+    'results.other_errors': 'Other errors',
+    'results.success_tip': 'Success rates vary by business type and location accuracy. More specific addresses typically yield better results.',
+    'results.download_clean_csv': 'Download Clean CSV'
   },
   fr: {
     title: 'Outil de Web Scraping',
@@ -374,7 +428,34 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     'status.error_connecting': 'Erreur de connexion au backend',
     'status.start_backend_instruction': 'Démarrer le backend :',
     'status.partial_services': 'L\'API fonctionne mais les services dépendants pourraient être déconnectés',
-    'status.all_services_ok': 'Tous les services fonctionnent correctement'
+    'status.all_services_ok': 'Tous les services fonctionnent correctement',
+    'status.degraded': 'Dégradé',
+    'status.response_time': 'Temps de réponse',
+    'status.queue_stats': 'Stats de la file',
+    'status.recent_activity': 'Activité récente',
+    'status.connection': 'Connexion',
+    'status.queue_access': 'Accès File',
+    'status.active_jobs': 'Tâches Actives',
+    'status.completed_jobs': 'Terminées',
+    'status.waiting_jobs': 'En Attente',
+    'status.failed_jobs': 'Échouées',
+    'status.last_job_time': 'Temps Dernier Job',
+    'status.accessible': 'Accessible',
+    'status.blocked': 'Bloqué',
+    'results.success_rate_good': 'Bon',
+    'results.success_rate_fair': 'Correct',
+    'results.success_rate_low': 'Faible',
+    'results.industry_average': 'Moyenne de l\'industrie : ~50%',
+    'results.complete_data_extracted': 'Données complètes extraites',
+    'results.no_data_found': 'Aucune donnée trouvée',
+    'results.businesses_searched': 'Entreprises recherchées',
+    'results.google_maps_queries': 'Requêtes Google Maps',
+    'results.error_analysis': 'Analyse des Erreurs',
+    'results.not_found_on_maps': 'Non trouvé sur Google Maps',
+    'results.all_strategies_failed': 'Toutes les stratégies de recherche ont échoué',
+    'results.other_errors': 'Autres erreurs',
+    'results.success_tip': 'Les taux de réussite varient selon le type d\'entreprise et la précision de l\'emplacement. Des adresses plus spécifiques donnent généralement de meilleurs résultats.',
+    'results.download_clean_csv': 'Télécharger CSV Propre'
   },
   de: {
     title: 'Web Scraping Tool',
@@ -498,7 +579,34 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     'status.error_connecting': 'Fehler beim Verbinden mit dem Backend',
     'status.start_backend_instruction': 'Backend starten:',
     'status.partial_services': 'API läuft, aber abhängige Dienste könnten getrennt sein',
-    'status.all_services_ok': 'Alle Dienste laufen korrekt'
+    'status.all_services_ok': 'Alle Dienste laufen korrekt',
+    'status.degraded': 'Beeinträchtigt',
+    'status.response_time': 'Antwortzeit',
+    'status.queue_stats': 'Warteschlangen-Stats',
+    'status.recent_activity': 'Letzte Aktivität',
+    'status.connection': 'Verbindung',
+    'status.queue_access': 'Warteschlangen-Zugriff',
+    'status.active_jobs': 'Aktive Jobs',
+    'status.completed_jobs': 'Abgeschlossen',
+    'status.waiting_jobs': 'Wartend',
+    'status.failed_jobs': 'Fehlgeschlagen',
+    'status.last_job_time': 'Letzte Job-Zeit',
+    'status.accessible': 'Zugänglich',
+    'status.blocked': 'Blockiert',
+    'results.success_rate_good': 'Gut',
+    'results.success_rate_fair': 'Ordentlich',
+    'results.success_rate_low': 'Niedrig',
+    'results.industry_average': 'Branchendurchschnitt: ~50%',
+    'results.complete_data_extracted': 'Vollständige Daten extrahiert',
+    'results.no_data_found': 'Keine Daten gefunden',
+    'results.businesses_searched': 'Unternehmen durchsucht',
+    'results.google_maps_queries': 'Google Maps Abfragen',
+    'results.error_analysis': 'Fehleranalyse',
+    'results.not_found_on_maps': 'Nicht auf Google Maps gefunden',
+    'results.all_strategies_failed': 'Alle Suchstrategien fehlgeschlagen',
+    'results.other_errors': 'Andere Fehler',
+    'results.success_tip': 'Erfolgsraten variieren je nach Unternehmenstyp und Standortgenauigkeit. Spezifischere Adressen führen typischerweise zu besseren Ergebnissen.',
+    'results.download_clean_csv': 'Bereinigte CSV Herunterladen'
   },
   it: {
     title: 'Strumento di Web Scraping',
@@ -622,7 +730,34 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     'status.error_connecting': 'Errore di connessione al backend',
     'status.start_backend_instruction': 'Avvia backend:',
     'status.partial_services': 'API in esecuzione ma i servizi dipendenti potrebbero essere disconnessi',
-    'status.all_services_ok': 'Tutti i servizi funzionano correttamente'
+    'status.all_services_ok': 'Tutti i servizi funzionano correttamente',
+    'status.degraded': 'Degradato',
+    'status.response_time': 'Tempo di risposta',
+    'status.queue_stats': 'Statistiche coda',
+    'status.recent_activity': 'Attività recente',
+    'status.connection': 'Connessione',
+    'status.queue_access': 'Accesso Coda',
+    'status.active_jobs': 'Job Attivi',
+    'status.completed_jobs': 'Completati',
+    'status.waiting_jobs': 'In Attesa',
+    'status.failed_jobs': 'Falliti',
+    'status.last_job_time': 'Tempo Ultimo Job',
+    'status.accessible': 'Accessibile',
+    'status.blocked': 'Bloccato',
+    'results.success_rate_good': 'Buono',
+    'results.success_rate_fair': 'Discreto',
+    'results.success_rate_low': 'Basso',
+    'results.industry_average': 'Media del settore: ~50%',
+    'results.complete_data_extracted': 'Dati completi estratti',
+    'results.no_data_found': 'Nessun dato trovato',
+    'results.businesses_searched': 'Aziende cercate',
+    'results.google_maps_queries': 'Query Google Maps',
+    'results.error_analysis': 'Analisi degli Errori',
+    'results.not_found_on_maps': 'Non trovato su Google Maps',
+    'results.all_strategies_failed': 'Tutte le strategie di ricerca fallite',
+    'results.other_errors': 'Altri errori',
+    'results.success_tip': 'I tassi di successo variano in base al tipo di attività e alla precisione della posizione. Indirizzi più specifici producono tipicamente risultati migliori.',
+    'results.download_clean_csv': 'Scarica CSV Pulito'
   }
 }
 

@@ -428,73 +428,119 @@ export function DataTable({ data }: DataTableProps) {
     [t],
   )
 
-  // Helper function to format hours display in HH:MM - HH:MM format
+  // Helper function to format hours display in HH:MM - HH:MM format (24-hour military time)
   const formatHours = (hours: string | null): JSX.Element => {
     if (!hours) {
       return <span className="text-muted-foreground text-xs">N/A</span>;
     }
     
-    const lowerHours = hours.toLowerCase();
-    if (lowerHours.includes('cerrado') || lowerHours.includes('closed')) {
-      return <span className="text-red-500 text-xs">🔴 Closed</span>;
-    }
-    
-    if (lowerHours.includes('24')) {
-      return <span className="text-green-500 text-xs">🟢 24h</span>;
-    }
-    
     // Convert to HH:MM - HH:MM format
     const formattedHours = convertToStandardFormat(hours);
     
+    // Handle special cases with appropriate styling
+    if (formattedHours === 'Closed') {
+      return <span className="text-red-500 text-xs font-medium">🔴 Closed</span>;
+    }
+    
+    if (formattedHours === '00:00 - 23:59') {
+      return <span className="text-green-500 text-xs font-medium">🟢 24h</span>;
+    }
+    
+    // Determine styling based on content
+    const hasMultipleRanges = formattedHours.includes(' & ');
+    const isValidTimeFormat = /\d{2}:\d{2}/.test(formattedHours);
+    
+    if (isValidTimeFormat) {
+      return (
+        <div 
+          className={`text-xs font-mono whitespace-nowrap ${hasMultipleRanges ? 'text-blue-700' : 'text-blue-600'}`}
+          title={`Original: ${hours}`}
+        >
+          {formattedHours}
+        </div>
+      );
+    }
+    
+    // Fallback for unrecognized formats
     return (
-      <div className="text-blue-600 text-xs whitespace-nowrap" title={hours}>
+      <div className="text-muted-foreground text-xs" title={`Original: ${hours}`}>
         {formattedHours}
       </div>
     );
   }
 
-  // Function to convert hours to HH:MM - HH:MM format
+  // Function to convert hours to HH:MM - HH:MM format (24-hour military time)
   const convertToStandardFormat = (hours: string): string => {
     if (!hours) return 'N/A';
     
     try {
-      // Handle common patterns and convert to HH:MM - HH:MM
-      let converted = hours
-        // Convert AM/PM to 24h format patterns
+      let workingHours = hours.trim();
+      
+      // Handle special cases first
+      const lowerHours = workingHours.toLowerCase();
+      if (lowerHours.includes('cerrado') || lowerHours.includes('closed')) {
+        return 'Closed';
+      }
+      if (lowerHours.includes('24') || lowerHours.includes('siempre') || lowerHours.includes('always')) {
+        return '00:00 - 23:59';
+      }
+      
+      // Convert AM/PM to 24-hour format
+      workingHours = workingHours
+        // Handle "12:30 AM" -> "00:30"
+        .replace(/12:(\d{2})\s*AM/gi, '00:$1')
+        // Handle other AM times "9:30 AM" -> "09:30"
         .replace(/(\d{1,2}):(\d{2})\s*AM/gi, (match, h, m) => {
           const hour = parseInt(h);
-          return `${hour === 12 ? '00' : hour.toString().padStart(2, '0')}:${m}`;
+          return `${hour.toString().padStart(2, '0')}:${m}`;
         })
+        // Handle "12:30 PM" -> "12:30"
+        .replace(/12:(\d{2})\s*PM/gi, '12:$1')
+        // Handle other PM times "9:30 PM" -> "21:30"
         .replace(/(\d{1,2}):(\d{2})\s*PM/gi, (match, h, m) => {
-          const hour = parseInt(h);
-          return `${hour === 12 ? '12' : (hour + 12).toString().padStart(2, '0')}:${m}`;
+          const hour = parseInt(h) + 12;
+          return `${hour.toString().padStart(2, '0')}:${m}`;
         })
-        // Handle times without minutes (e.g., "9 AM")
+        // Handle times without minutes "9 AM" -> "09:00"
         .replace(/(\d{1,2})\s*AM/gi, (match, h) => {
           const hour = parseInt(h);
-          return `${hour === 12 ? '00' : hour.toString().padStart(2, '0')}:00`;
+          return hour === 12 ? '00:00' : `${hour.toString().padStart(2, '0')}:00`;
         })
         .replace(/(\d{1,2})\s*PM/gi, (match, h) => {
           const hour = parseInt(h);
-          return `${hour === 12 ? '12' : (hour + 12).toString().padStart(2, '0')}:00`;
-        })
-        // Convert single digit hours to double digit
-        .replace(/\b(\d):(\d{2})/g, '0$1:$2')
-        // Replace various separators with standard dash
-        .replace(/\s*[–—−~]\.?\s*/g, ' - ')
+          return hour === 12 ? '12:00' : `${(hour + 12).toString().padStart(2, '0')}:00`;
+        });
+
+      // Normalize separators to standard dash
+      workingHours = workingHours
+        .replace(/\s*[–—−~]\s*/g, ' - ')
         .replace(/\s*to\s*/gi, ' - ')
         .replace(/\s*hasta\s*/gi, ' - ')
         .replace(/\s*a\s*/gi, ' - ')
-        // Clean up extra spaces
         .replace(/\s+/g, ' ')
         .trim();
       
-      // Handle multiple time ranges (like lunch breaks)
-      if (converted.includes(',') || converted.includes('&') || converted.includes('y')) {
-        converted = converted.replace(/[,&y]/g, ' & ').replace(/\s+&\s+/g, ' & ');
+      // Ensure single digit hours are padded (9:30 -> 09:30)
+      workingHours = workingHours.replace(/\b(\d):(\d{2})/g, '0$1:$2');
+      
+      // Handle multiple time ranges (lunch breaks, split schedules)
+      if (workingHours.includes(',') || workingHours.includes('&') || workingHours.includes(' y ')) {
+        workingHours = workingHours
+          .replace(/[,&]/g, ' & ')
+          .replace(/\s+y\s+/gi, ' & ')
+          .replace(/\s+&\s+/g, ' & ');
       }
       
-      return converted || hours; // Return original if conversion fails
+      // Final cleanup and validation
+      workingHours = workingHours.replace(/\s+/g, ' ').trim();
+      
+      // Validate that we have a proper time format
+      const timePattern = /\d{2}:\d{2}/;
+      if (!timePattern.test(workingHours)) {
+        return hours; // Return original if no valid time found
+      }
+      
+      return workingHours;
     } catch (error) {
       console.warn('Error formatting hours:', hours, error);
       return hours; // Return original if any error occurs

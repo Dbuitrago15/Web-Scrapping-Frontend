@@ -56,7 +56,7 @@ export function ResultsStats({ results }: ResultsStatsProps) {
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
-            Success Rate
+            {t('success_rate')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -65,12 +65,12 @@ export function ResultsStats({ results }: ResultsStatsProps) {
               {successRate.toFixed(1)}%
             </span>
             <Badge variant={getSuccessRateBadgeVariant(successRate)} className="text-xs">
-              {successRate >= 50 ? "Good" : successRate >= 30 ? "Fair" : "Low"}
+              {successRate >= 50 ? t('results.success_rate_good') : successRate >= 30 ? t('results.success_rate_fair') : t('results.success_rate_low')}
             </Badge>
           </div>
           <Progress value={successRate} className="mt-2" />
           <p className="text-xs text-muted-foreground mt-1">
-            Industry average: ~50%
+            {t('results.industry_average')}
           </p>
         </CardContent>
       </Card>
@@ -80,7 +80,7 @@ export function ResultsStats({ results }: ResultsStatsProps) {
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <CheckCircle className="h-4 w-4 text-green-600" />
-            Successful
+            {t('successful')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -91,7 +91,7 @@ export function ResultsStats({ results }: ResultsStatsProps) {
             {total > 0 ? `${((successful / total) * 100).toFixed(0)}% of total` : '0% of total'}
           </p>
           <div className="mt-2 text-xs">
-            <span className="text-green-600">✅ Complete data extracted</span>
+            <span className="text-green-600">✅ {t('results.complete_data_extracted')}</span>
           </div>
         </CardContent>
       </Card>
@@ -101,7 +101,7 @@ export function ResultsStats({ results }: ResultsStatsProps) {
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <XCircle className="h-4 w-4 text-red-600" />
-            Failed
+            {t('failed')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -112,7 +112,7 @@ export function ResultsStats({ results }: ResultsStatsProps) {
             {total > 0 ? `${((failed / total) * 100).toFixed(0)}% of total` : '0% of total'}
           </p>
           <div className="mt-2 text-xs">
-            <span className="text-red-600">❌ No data found</span>
+            <span className="text-red-600">❌ {t('results.no_data_found')}</span>
           </div>
         </CardContent>
       </Card>
@@ -122,7 +122,7 @@ export function ResultsStats({ results }: ResultsStatsProps) {
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <Search className="h-4 w-4" />
-            Total Processed
+            {t('table.entries')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -130,11 +130,11 @@ export function ResultsStats({ results }: ResultsStatsProps) {
             {total}
           </div>
           <p className="text-xs text-muted-foreground">
-            Businesses searched
+            {t('results.businesses_searched')}
           </p>
           <div className="mt-2 space-y-1">
             <div className="flex justify-between text-xs">
-              <span>Google Maps queries</span>
+              <span>{t('results.google_maps_queries')}</span>
               <span className="font-medium">{total}</span>
             </div>
           </div>
@@ -147,7 +147,7 @@ export function ResultsStats({ results }: ResultsStatsProps) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <XCircle className="h-4 w-4 text-red-600" />
-              Error Analysis
+              {t('results.error_analysis')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -158,7 +158,7 @@ export function ResultsStats({ results }: ResultsStatsProps) {
                     {errorTypes.not_found}
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    Not found on Google Maps
+                    {t('results.not_found_on_maps')}
                   </div>
                 </div>
               )}
@@ -168,7 +168,7 @@ export function ResultsStats({ results }: ResultsStatsProps) {
                     {errorTypes.strategies_failed}
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    All search strategies failed
+                    {t('results.all_strategies_failed')}
                   </div>
                 </div>
               )}
@@ -178,7 +178,7 @@ export function ResultsStats({ results }: ResultsStatsProps) {
                     {errorTypes.timeout}
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    Timeout errors
+                    {t('timeout_errors')}
                   </div>
                 </div>
               )}
@@ -188,15 +188,14 @@ export function ResultsStats({ results }: ResultsStatsProps) {
                     {errorTypes.other}
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    Other errors
+                    {t('results.other_errors')}
                   </div>
                 </div>
               )}
             </div>
             <div className="mt-3 p-2 bg-muted rounded-md">
               <p className="text-xs text-muted-foreground">
-                💡 <strong>Tip:</strong> Success rates vary by business type and location accuracy. 
-                More specific addresses typically yield better results.
+                💡 <strong>Tip:</strong> {t('results.success_tip')}
               </p>
             </div>
           </CardContent>
