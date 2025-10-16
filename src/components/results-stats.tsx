@@ -13,21 +13,24 @@ interface ResultsStatsProps {
 
 export function ResultsStats({ results }: ResultsStatsProps) {
   const { t } = useTranslation()
-  const successful = results.filter(r => !r.error).length
-  const failed = results.filter(r => r.error).length
+  
+  // ✅ FIXED: Use scrapedData.status instead of error field
+  const successful = results.filter(r => r.scrapedData?.status === 'success').length
+  const partial = results.filter(r => r.scrapedData?.status === 'partial').length
+  const failed = results.filter(r => r.scrapedData?.status === 'failed' || !r.scrapedData).length
   const total = results.length
   const successRate = total > 0 ? ((successful / total) * 100) : 0
 
-  // Analyze common error types
+  // ✅ FIXED: Analyze common error types using scrapedData.error
   const errorTypes = results
-    .filter(r => r.error)
+    .filter(r => r.scrapedData?.status === 'failed' || !r.scrapedData)
     .reduce((acc, result) => {
-      const error = result.error || 'Unknown error'
-      if (error.includes('No search results')) {
+      const error = result.scrapedData?.error || result.error || 'Unknown error'
+      if (error.includes('No search results') || error.includes('not found')) {
         acc['not_found'] = (acc['not_found'] || 0) + 1
-      } else if (error.includes('All search strategies failed')) {
+      } else if (error.includes('All search strategies failed') || error.includes('strategies')) {
         acc['strategies_failed'] = (acc['strategies_failed'] || 0) + 1
-      } else if (error.includes('Timeout')) {
+      } else if (error.includes('Timeout') || error.includes('timeout')) {
         acc['timeout'] = (acc['timeout'] || 0) + 1
       } else {
         acc['other'] = (acc['other'] || 0) + 1

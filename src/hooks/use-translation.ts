@@ -75,6 +75,7 @@ export type TranslationKey =
   | 'upload.button'
   | 'upload.uploading'
   | 'download_csv'
+  | 'upload_another_csv'
   | 'export_results'
   | 'results.title'
   | 'table.entries'
@@ -115,6 +116,14 @@ export type TranslationKey =
   | 'csv.empty_business_name'
   | 'csv.file_read_error'
   | 'csv.required_columns_info'
+  | 'csv.required_columns'
+  | 'csv.optional'
+  | 'csv.utf8_support'
+  | 'gps.latitude'
+  | 'gps.longitude'
+  | 'gps.coordinates'
+  | 'gps.view_on_maps'
+  | 'results.download_clean_csv'
   | 'processing.records_processed'
   | 'time.seconds_ago'
   | 'time.minutes_ago'
@@ -227,6 +236,7 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     'upload.button': 'Process File',
     'upload.uploading': 'Uploading file...',
     download_csv: 'Download CSV',
+    upload_another_csv: 'Upload Another CSV',
     export_results: 'Export Results',
     'results.title': 'Results',
     'table.entries': 'entries',
@@ -267,6 +277,13 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     'csv.invalid_file': 'Invalid File',
     'csv.validation_error': 'Error validating file',
     'csv.required_columns_info': 'Required columns: {columns}. Optional: {optional}',
+    'csv.required_columns': 'Required columns',
+    'csv.optional': 'Optional',
+    'csv.utf8_support': '✓ UTF-8 support for special characters (ä, ö, ü, é, à, ñ, etc.)',
+    'gps.latitude': 'Latitude',
+    'gps.longitude': 'Longitude',
+    'gps.coordinates': 'GPS Coordinates',
+    'gps.view_on_maps': 'View on Google Maps',
     'processing.records_processed': '{completed} of {total} records processed',
     'time.seconds_ago': '{seconds} seconds ago',
     'time.minutes_ago': '{minutes} minutes ago',
@@ -378,6 +395,7 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     'upload.button': 'Traiter le Fichier',
     'upload.uploading': 'Téléchargement du fichier...',
     download_csv: 'Télécharger CSV',
+    upload_another_csv: 'Télécharger un Autre CSV',
     export_results: 'Exporter les Résultats',
     'results.title': 'Résultats',
     'table.entries': 'entrées',
@@ -418,6 +436,13 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     'csv.invalid_file': 'Fichier Invalide',
     'csv.validation_error': 'Erreur de validation du fichier',
     'csv.required_columns_info': 'Colonnes requises : {columns}. Optionnel : {optional}',
+    'csv.required_columns': 'Colonnes requises',
+    'csv.optional': 'Optionnel',
+    'csv.utf8_support': '✓ Support UTF-8 pour les caractères spéciaux (ä, ö, ü, é, à, ñ, etc.)',
+    'gps.latitude': 'Latitude',
+    'gps.longitude': 'Longitude',
+    'gps.coordinates': 'Coordonnées GPS',
+    'gps.view_on_maps': 'Voir sur Google Maps',
     'processing.records_processed': '{completed} sur {total} enregistrements traités',
     'time.seconds_ago': 'il y a {seconds} secondes',
     'time.minutes_ago': 'il y a {minutes} minutes',
@@ -529,6 +554,7 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     'upload.button': 'Datei Verarbeiten',
     'upload.uploading': 'Datei wird hochgeladen...',
     download_csv: 'CSV Herunterladen',
+    upload_another_csv: 'Weitere CSV Hochladen',
     export_results: 'Ergebnisse Exportieren',
     'results.title': 'Ergebnisse',
     'table.entries': 'Einträge',
@@ -569,6 +595,13 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     'csv.invalid_file': 'Ungültige Datei',
     'csv.validation_error': 'Fehler bei der Dateivalididierung',
     'csv.required_columns_info': 'Erforderliche Spalten: {columns}. Optional: {optional}',
+    'csv.required_columns': 'Erforderliche Spalten',
+    'csv.optional': 'Optional',
+    'csv.utf8_support': '✓ UTF-8-Unterstützung für Sonderzeichen (ä, ö, ü, é, à, ñ, usw.)',
+    'gps.latitude': 'Breitengrad',
+    'gps.longitude': 'Längengrad',
+    'gps.coordinates': 'GPS-Koordinaten',
+    'gps.view_on_maps': 'Auf Google Maps ansehen',
     'processing.records_processed': '{completed} von {total} Datensätzen verarbeitet',
     'time.seconds_ago': 'vor {seconds} Sekunden',
     'time.minutes_ago': 'vor {minutes} Minuten',
@@ -680,6 +713,7 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     'upload.button': 'Elabora File',
     'upload.uploading': 'Caricamento file...',
     download_csv: 'Scarica CSV',
+    upload_another_csv: 'Carica un Altro CSV',
     export_results: 'Esporta Risultati',
     'results.title': 'Risultati',
     'table.entries': 'voci',
@@ -720,6 +754,13 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     'csv.invalid_file': 'File Non Valido',
     'csv.validation_error': 'Errore nella validazione del file',
     'csv.required_columns_info': 'Colonne richieste: {columns}. Opzionale: {optional}',
+    'csv.required_columns': 'Colonne richieste',
+    'csv.optional': 'Opzionale',
+    'csv.utf8_support': '✓ Supporto UTF-8 per caratteri speciali (ä, ö, ü, é, à, ñ, ecc.)',
+    'gps.latitude': 'Latitudine',
+    'gps.longitude': 'Longitudine',
+    'gps.coordinates': 'Coordinate GPS',
+    'gps.view_on_maps': 'Visualizza su Google Maps',
     'processing.records_processed': '{completed} di {total} record elaborati',
     'time.seconds_ago': '{seconds} secondi fa',
     'time.minutes_ago': '{minutes} minuti fa',

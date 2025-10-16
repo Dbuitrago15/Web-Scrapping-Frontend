@@ -111,7 +111,7 @@ export function convertToCSV(results: ScrapingResult[]): string {
     return ''
   }
   
-  // CSV Headers - Updated for new backend structure
+  // CSV Headers - Updated for new backend structure with GPS and enhanced fields
   const headers = [
     'Input Business Name',
     'Input Address',  
@@ -121,6 +121,12 @@ export function convertToCSV(results: ScrapingResult[]): string {
     'Scraped Address',
     'Status',
     'Phone',
+    'Rating',              // 🆕 NEW: Star rating
+    'Reviews Count',       // 🆕 NEW: Number of reviews
+    'Website',             // 🆕 NEW: Official website
+    'Category',            // 🆕 NEW: Business category
+    'Latitude',            // 🆕 NEW: GPS Latitude
+    'Longitude',           // 🆕 NEW: GPS Longitude
     'Facebook',
     'Instagram',
     'Twitter',
@@ -151,6 +157,12 @@ export function convertToCSV(results: ScrapingResult[]): string {
       escapeCSV(result.scrapedData?.fullAddress || ''),                        // Scraped Address
       result.scrapedData?.status || 'unknown',                                 // Status
       escapeCSV(result.scrapedData?.phone || ''),                              // Phone
+      escapeCSV(result.scrapedData?.rating || ''),                             // 🆕 Rating
+      escapeCSV(result.scrapedData?.reviewsCount || ''),                       // 🆕 Reviews Count
+      escapeCSV(result.scrapedData?.website || ''),                            // 🆕 Website
+      escapeCSV(result.scrapedData?.category || ''),                           // 🆕 Category
+      escapeCSV(result.scrapedData?.latitude || ''),                           // 🆕 GPS Latitude
+      escapeCSV(result.scrapedData?.longitude || ''),                          // 🆕 GPS Longitude
       
       // SOCIAL MEDIA (From Google Maps)
       escapeCSV(result.scrapedData?.socialMedia?.facebook || ''),              // Facebook

@@ -109,6 +109,8 @@ export interface ScrapingResult {
     reviewsCount?: string | null              // 📊 NEW: Número de reseñas
     website?: string | null                   // 🌐 NEW: Sitio web oficial
     category?: string | null                  // 🏷️ NEW: Categoría/tipo de negocio
+    latitude?: string | null                  // 📍 NEW: GPS Latitude coordinate
+    longitude?: string | null                 // 📍 NEW: GPS Longitude coordinate
     socialMedia?: {
       facebook?: string | null
       instagram?: string | null

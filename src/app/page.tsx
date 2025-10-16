@@ -152,6 +152,19 @@ export default function HomePage() {
   }, [])
 
   // ===============================
+  // 🆕 NUEVA BÚSQUEDA (UPLOAD ANOTHER CSV)
+  // ===============================
+  const handleNewSearch = useCallback(() => {
+    setStatus('idle')
+    setFile(null)
+    setError('')
+    setBatchId(null)
+    setProgress({ completed: 0, total: 0 })
+    setResults([])
+    setShowResults(false)
+  }, [])
+
+  // ===============================
   // RENDERIZADO CONDICIONAL
   // ===============================
   const renderContent = () => {
@@ -178,6 +191,7 @@ export default function HomePage() {
             results={results}
             batchId={batchId || undefined}
             onViewResults={handleViewResults}
+            onNewSearch={handleNewSearch}
           />
         )
       

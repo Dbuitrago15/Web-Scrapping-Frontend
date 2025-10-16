@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle, Eye, Download, Loader2 } from 'lucide-react'
+import { CheckCircle, Eye, Download, Loader2, Upload } from 'lucide-react'
 import { useTranslation } from "@/hooks/use-translation"
 import { ScrapingResult, ApiService } from "@/lib/api"
 import { ResultsStats } from "@/components/results-stats"
@@ -11,13 +11,17 @@ interface CompletionCardProps {
   results: ScrapingResult[]
   batchId?: string // 🆕 Added batchId for new backend export
   onViewResults: () => void
+  onNewSearch?: () => void // 🆕 NEW: Callback to start a new search
 }
 
-export function CompletionCard({ results, batchId, onViewResults }: CompletionCardProps) {
+export function CompletionCard({ results, batchId, onViewResults, onNewSearch }: CompletionCardProps) {
   const { t } = useTranslation()
   const [isExporting, setIsExporting] = useState(false)
-  const successful = results.filter(r => !r.error).length
-  const failed = results.filter(r => r.error).length
+  
+  // ✅ FIXED: Use scrapedData.status instead of error field
+  const successful = results.filter(r => r.scrapedData?.status === 'success').length
+  const partial = results.filter(r => r.scrapedData?.status === 'partial').length
+  const failed = results.filter(r => r.scrapedData?.status === 'failed' || !r.scrapedData).length
   const total = results.length
   const successRate = total > 0 ? ((successful / total) * 100) : 0
 
@@ -86,6 +90,19 @@ export function CompletionCard({ results, batchId, onViewResults }: CompletionCa
               </>
             )}
           </Button>
+          
+          {/* 🆕 NEW: Upload Another CSV Button */}
+          {onNewSearch && (
+            <Button 
+              onClick={onNewSearch} 
+              variant="secondary" 
+              size="lg" 
+              className="w-full"
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              {t('upload_another_csv')}
+            </Button>
+          )}
         </CardContent>
       </Card>
     </div>

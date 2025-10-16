@@ -64,7 +64,12 @@ export function FileUploaderCard({
           {t("upload.description")}
           <br />
           <span className="text-xs text-muted-foreground">
-            Columnas requeridas: <code>name</code>, <code>address</code>, <code>city</code>. Opcional: <code>postal_code</code>
+            {t('csv.required_columns')}: <code>name</code>, <code>address</code>, <code>city</code>. {t('csv.optional')}: <code>postal_code</code>
+          </span>
+          <br />
+          <span className="text-xs text-green-600 flex items-center gap-1 mt-1">
+            <CheckCircle className="h-3 w-3" />
+            {t('csv.utf8_support')}
           </span>
         </CardDescription>
       </CardHeader>

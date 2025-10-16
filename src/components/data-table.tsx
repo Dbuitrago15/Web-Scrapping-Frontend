@@ -270,7 +270,66 @@ export function DataTable({ data }: DataTableProps) {
         },
       },
 
-      // 7. Input Address (What was sent)
+      // 7. 🆕 GPS Coordinates (New field - Latitude)
+      {
+        accessorFn: (row) => row.scrapedData?.latitude,
+        id: "latitude",
+        header: () => "📍 Latitude",
+        cell: ({ row }) => {
+          const latitude = row.original.scrapedData?.latitude;
+          const longitude = row.original.scrapedData?.longitude;
+          const status = row.original.scrapedData?.status;
+          
+          if (status !== 'success' || !latitude) {
+            return <span className="text-muted-foreground text-sm">N/A</span>;
+          }
+          
+          // Show latitude with link to Google Maps if both coordinates available
+          if (latitude && longitude) {
+            const mapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
+            return (
+              <a
+                href={mapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline text-xs font-mono"
+                title={`View on Google Maps: ${latitude}, ${longitude}`}
+              >
+                {parseFloat(latitude).toFixed(6)}
+              </a>
+            );
+          }
+          
+          return (
+            <span className="text-xs font-mono">
+              {parseFloat(latitude).toFixed(6)}
+            </span>
+          );
+        },
+      },
+
+      // 8. 🆕 GPS Coordinates (New field - Longitude)
+      {
+        accessorFn: (row) => row.scrapedData?.longitude,
+        id: "longitude",
+        header: () => "📍 Longitude",
+        cell: ({ row }) => {
+          const longitude = row.original.scrapedData?.longitude;
+          const status = row.original.scrapedData?.status;
+          
+          if (status !== 'success' || !longitude) {
+            return <span className="text-muted-foreground text-sm">N/A</span>;
+          }
+          
+          return (
+            <span className="text-xs font-mono">
+              {parseFloat(longitude).toFixed(6)}
+            </span>
+          );
+        },
+      },
+
+      // 9. Input Address (What was sent)
       {
         accessorFn: (row) => row.originalData.address,
         id: "input_address",
@@ -294,7 +353,7 @@ export function DataTable({ data }: DataTableProps) {
           );
         },
       },
-      // 8. Found Phone (From Google Maps)
+      // 10. Found Phone (From Google Maps)
       {
         accessorFn: (row) => row.scrapedData?.phone,
         id: "phone",
@@ -315,7 +374,7 @@ export function DataTable({ data }: DataTableProps) {
           );
         },
       },
-      // 9. Social Media Links (From Google Maps)
+      // 11. Social Media Links (From Google Maps)
       {
         accessorFn: (row) => row.scrapedData?.socialMedia?.facebook || row.scrapedData?.socialMedia?.instagram,
         id: "social_media",
@@ -353,7 +412,7 @@ export function DataTable({ data }: DataTableProps) {
           );
         },
       },
-      // 10-16. Daily Hours (From Google Maps openingHours)
+      // 12-18. Daily Hours (From Google Maps openingHours)
       {
         accessorFn: (row) => extractDayHours(row.scrapedData?.openingHours, "Monday"),
         id: "monday_hours",
