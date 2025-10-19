@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { batchId: string } }
+  { params }: { params: Promise<{ batchId: string }> }
 ) {
   try {
-    const { batchId } = params
+    const { batchId } = await params
 
     const response = await fetch(`http://localhost:3000/api/v1/scraping-batch/${batchId}`, {
       method: 'GET',

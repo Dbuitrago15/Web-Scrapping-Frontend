@@ -7,15 +7,15 @@ import { Button } from "@/components/ui/button"
 import { RefreshCw, Server, Database, Cog, AlertCircle, CheckCircle, XCircle } from "lucide-react"
 import { useTranslation } from "@/hooks/use-translation"
 import { useLanguage } from "@/contexts/language-context"
-import { ApiService, ServiceStatus } from "@/lib/api"
+import { ApiService, ServiceStatus, ServiceHealth } from "@/lib/api"
 
 export function BackendStatusCard() {
   const { t } = useTranslation()
   const { language } = useLanguage()
   const [status, setStatus] = useState<ServiceStatus>({
-    api: false,
-    redis: false, 
-    worker: false,
+    api: { status: 'unhealthy', service: 'api' },
+    redis: { status: 'unhealthy', service: 'redis' }, 
+    worker: { status: 'unhealthy', service: 'worker' },
     lastCheck: new Date().toISOString()
   })
   const [isChecking, setIsChecking] = useState(false)
@@ -30,9 +30,9 @@ export function BackendStatusCard() {
     } catch (error) {
       console.error('Error checking services:', error)
       setStatus({
-        api: false,
-        redis: false,
-        worker: false,
+        api: { status: 'unhealthy', service: 'api' },
+        redis: { status: 'unhealthy', service: 'redis' },
+        worker: { status: 'unhealthy', service: 'worker' },
         lastCheck: new Date().toISOString(),
         error: 'Error conectando con el backend'
       })
@@ -47,27 +47,57 @@ export function BackendStatusCard() {
     return () => clearInterval(interval)
   }, [])
 
-  const getStatusBadge = (isUp: boolean, label: string, port?: string) => (
-    <div className="flex items-center justify-between p-2 rounded border">
-      <div className="flex items-center gap-2">
-        {isUp ? (
-          <CheckCircle className="h-4 w-4 text-green-600" />
-        ) : (
-          <XCircle className="h-4 w-4 text-red-600" />
-        )}
-        {label === 'API' && <Server className="h-4 w-4 text-muted-foreground" />}
-        {label === 'Redis' && <Database className="h-4 w-4 text-muted-foreground" />}
-        {label === 'Worker' && <Cog className="h-4 w-4 text-muted-foreground" />}
-        <div>
-          <span className="font-medium">{label}</span>
-          {port && <span className="text-xs text-muted-foreground">:{port}</span>}
+  const getStatusBadge = (service: ServiceHealth | null, label: string, port?: string) => {
+    if (!service) {
+      return (
+        <div className="flex items-center justify-between p-2 rounded border">
+          <div className="flex items-center gap-2">
+            <XCircle className="h-4 w-4 text-gray-400" />
+            {label === 'API' && <Server className="h-4 w-4 text-muted-foreground" />}
+            {label === 'Redis' && <Database className="h-4 w-4 text-muted-foreground" />}
+            {label === 'Worker' && <Cog className="h-4 w-4 text-muted-foreground" />}
+            <div>
+              <span className="font-medium">{label}</span>
+              {port && <span className="text-xs text-muted-foreground">:{port}</span>}
+            </div>
+          </div>
+          <Badge variant="secondary" className="text-xs">
+            Unknown
+          </Badge>
         </div>
+      )
+    }
+
+    const isHealthy = service.status === 'healthy'
+    const isDegraded = service.status === 'degraded'
+    
+    return (
+      <div className="flex items-center justify-between p-2 rounded border">
+        <div className="flex items-center gap-2">
+          {isHealthy ? (
+            <CheckCircle className="h-4 w-4 text-green-600" />
+          ) : isDegraded ? (
+            <AlertCircle className="h-4 w-4 text-yellow-600" />
+          ) : (
+            <XCircle className="h-4 w-4 text-red-600" />
+          )}
+          {label === 'API' && <Server className="h-4 w-4 text-muted-foreground" />}
+          {label === 'Redis' && <Database className="h-4 w-4 text-muted-foreground" />}
+          {label === 'Worker' && <Cog className="h-4 w-4 text-muted-foreground" />}
+          <div>
+            <span className="font-medium">{label}</span>
+            {port && <span className="text-xs text-muted-foreground">:{port}</span>}
+          </div>
+        </div>
+        <Badge 
+          variant={isHealthy ? "default" : isDegraded ? "secondary" : "destructive"} 
+          className="text-xs"
+        >
+          {isHealthy ? t('status.connected') : isDegraded ? t('status.degraded') : t('status.disconnected')}
+        </Badge>
       </div>
-      <Badge variant={isUp ? "default" : "destructive"} className="text-xs">
-        {isUp ? t('status.connected') : t('status.disconnected')}
-      </Badge>
-    </div>
-  )
+    )
+  }
 
   const formatLastCheck = (timestamp: string) => {
     const date = new Date(timestamp)
@@ -126,19 +156,19 @@ export function BackendStatusCard() {
         )}
         
         {/* Instrucciones según el estado */}
-        {!status.api && (
+        {status.api?.status !== 'healthy' && (
           <div className="text-xs text-muted-foreground p-2 bg-muted rounded">
             💡 {t('status.start_backend_instruction')} <code className="bg-gray-200 px-1 rounded">docker-compose up --build -d</code>
           </div>
         )}
         
-        {status.api && (!status.redis || !status.worker) && (
+        {status.api?.status === 'healthy' && (status.redis?.status !== 'healthy' || status.worker?.status !== 'healthy') && (
           <div className="text-xs text-muted-foreground p-2 bg-yellow-50 border border-yellow-200 rounded">
             ⚠️ {t('status.partial_services')}
           </div>
         )}
 
-        {status.api && status.redis && status.worker && (
+        {status.api?.status === 'healthy' && status.redis?.status === 'healthy' && status.worker?.status === 'healthy' && (
           <div className="text-xs text-green-700 p-2 bg-green-50 border border-green-200 rounded">
             ✅ {t('status.all_services_ok')}
           </div>

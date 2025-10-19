@@ -1,5 +1,9 @@
 {
-  "/api/v1/scraping-batch/route": "app/api/v1/scraping-batch/route.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/v1/scraping-batch/[batchId]/route": "app/api/v1/scraping-batch/[batchId]/route.js",
   "/api/v1/health/route": "app/api/v1/health/route.js",
+  "/api/v1/health/worker/route": "app/api/v1/health/worker/route.js",
+  "/api/v1/health/redis/route": "app/api/v1/health/redis/route.js",
+  "/api/v1/scraping-batch/route": "app/api/v1/scraping-batch/route.js",
   "/page": "app/page.js"
 }

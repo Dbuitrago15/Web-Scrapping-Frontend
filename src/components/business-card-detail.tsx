@@ -29,7 +29,7 @@ export function BusinessCardDetail({ business }: BusinessCardDetailProps) {
   if (!business.scrapedData || business.scrapedData.status !== 'success') {
     return (
       <Card className={`border-2 ${
-        business.status === 'error' ? 'border-yellow-200 bg-yellow-50' : 'border-red-200 bg-red-50'
+        business.scrapedData?.status === 'partial' ? 'border-yellow-200 bg-yellow-50' : 'border-red-200 bg-red-50'
       }`}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 justify-between">

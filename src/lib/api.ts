@@ -205,9 +205,9 @@ export interface ServiceHealth {
 }
 
 export interface ServiceStatus {
-  api: ServiceHealth
-  redis: ServiceHealth
-  worker: ServiceHealth
+  api: ServiceHealth | null
+  redis: ServiceHealth | null
+  worker: ServiceHealth | null
   lastCheck: string
   error?: string
 }
