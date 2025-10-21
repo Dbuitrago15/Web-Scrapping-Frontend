@@ -6,7 +6,9 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData()
     
     // Forward the request to the backend
-    const response = await fetch('http://localhost:3000/api/v1/scraping-batch', {
+    // Backend is running on port 3000 (Docker container scraper_api:3000:3000)
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:3000'
+    const response = await fetch(`${backendUrl}/api/v1/scraping-batch`, {
       method: 'POST',
       body: formData,
     })

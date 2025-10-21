@@ -59,7 +59,7 @@ export function DataTable({ data }: DataTableProps) {
 
   const columns: ColumnDef<ScrapingResult>[] = useMemo(
     () => [
-      // 1. Input Business Name (What was sent)
+      // 1. Input Business Name
       {
         accessorKey: "originalData.name",
         header: ({ column }) => (
@@ -68,7 +68,7 @@ export function DataTable({ data }: DataTableProps) {
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="h-auto p-0 font-semibold"
           >
-            {t('table.input_name')}
+            Input Name
             {column.getIsSorted() === "asc" ? (
               <ArrowUp className="ml-2 h-4 w-4" />
             ) : column.getIsSorted() === "desc" ? (
@@ -84,7 +84,7 @@ export function DataTable({ data }: DataTableProps) {
           
           return (
             <div className="font-medium max-w-xs">
-              <div className="text-xs text-muted-foreground mb-1">{t('table.input_data')}:</div>
+              <div className="text-xs text-muted-foreground mb-1">Input:</div>
               <div className="truncate font-semibold" title={businessName}>
                 {businessName}
               </div>
@@ -106,7 +106,7 @@ export function DataTable({ data }: DataTableProps) {
           );
         },
       },
-      // 2. Found Business Name (What was actually found on Google Maps)
+      // 2. Found Business Name
       {
         accessorFn: (row) => row.scrapedData?.fullName,
         id: "scraped_name",
@@ -116,7 +116,7 @@ export function DataTable({ data }: DataTableProps) {
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="h-auto p-0 font-semibold"
           >
-            {t('table.found_name')}
+            Found Name
             {column.getIsSorted() === "asc" ? (
               <ArrowUp className="ml-2 h-4 w-4" />
             ) : column.getIsSorted() === "desc" ? (
@@ -135,31 +135,25 @@ export function DataTable({ data }: DataTableProps) {
           
           return (
             <div className="font-medium max-w-xs">
-              <div className="text-xs text-green-600 mb-1">{t('table.found_on_maps')}:</div>
+              <div className="text-xs text-green-600 mb-1">Found on Google Maps:</div>
               <div className="truncate font-semibold" title={scrapedData.fullName}>
                 {scrapedData.fullName}
               </div>
-              {scrapedData.fullAddress && (
-                <div className="text-xs text-green-600 truncate mt-1" title={scrapedData.fullAddress}>
-                  📍 {scrapedData.fullAddress}
-                </div>
-              )}
             </div>
           );
         },
       },
-
-      // 3. 🆕 Rating (New field)
+      // 3. Found Address
       {
-        accessorFn: (row) => row.scrapedData?.rating,
-        id: "rating",
+        accessorFn: (row) => row.scrapedData?.fullAddress,
+        id: "scraped_address",
         header: ({ column }) => (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="h-auto p-0 font-semibold"
           >
-            ⭐ Rating
+            📍 Address
             {column.getIsSorted() === "asc" ? (
               <ArrowUp className="ml-2 h-4 w-4" />
             ) : column.getIsSorted() === "desc" ? (
@@ -170,59 +164,44 @@ export function DataTable({ data }: DataTableProps) {
           </Button>
         ),
         cell: ({ row }) => {
-          const rating = row.original.scrapedData?.rating;
+          const address = row.original.scrapedData?.fullAddress;
           const status = row.original.scrapedData?.status;
           
-          if (status !== 'success' || !rating) {
+          if (status !== 'success' || !address) {
             return <span className="text-muted-foreground text-sm">N/A</span>;
           }
           
           return (
-            <div className="flex items-center gap-1">
-              <Star className="h-4 w-4 text-yellow-500 fill-current" />
-              <span className="font-medium">{rating}</span>
+            <div className="max-w-xs">
+              <div className="text-xs text-green-600 mb-1">📍 Address:</div>
+              <div className="truncate text-sm" title={address}>
+                {address}
+              </div>
             </div>
           );
         },
       },
-
-      // 4. 🆕 Reviews Count (New field)
+      // 4. Phone
       {
-        accessorFn: (row) => row.scrapedData?.reviewsCount,
-        id: "reviews_count",
-        header: ({ column }) => (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="h-auto p-0 font-semibold"
-          >
-            📊 Reviews
-            {column.getIsSorted() === "asc" ? (
-              <ArrowUp className="ml-2 h-4 w-4" />
-            ) : column.getIsSorted() === "desc" ? (
-              <ArrowDown className="ml-2 h-4 w-4" />
-            ) : (
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            )}
-          </Button>
-        ),
+        accessorFn: (row) => row.scrapedData?.phone,
+        id: "phone",
+        header: () => "📞 Phone",
         cell: ({ row }) => {
-          const reviewsCount = row.original.scrapedData?.reviewsCount;
+          const phone = row.original.scrapedData?.phone;
           const status = row.original.scrapedData?.status;
           
-          if (status !== 'success' || !reviewsCount) {
+          if (status !== 'success' || !phone) {
             return <span className="text-muted-foreground text-sm">N/A</span>;
           }
           
           return (
-            <div className="text-sm font-medium">
-              {reviewsCount}
-            </div>
+            <a href={`tel:${phone}`} className="text-blue-600 hover:underline text-sm">
+              📞 {phone}
+            </a>
           );
         },
       },
-
-      // 5. 🆕 Website (New field)
+      // 5. Website
       {
         accessorFn: (row) => row.scrapedData?.website,
         id: "website",
@@ -243,13 +222,12 @@ export function DataTable({ data }: DataTableProps) {
               className="text-blue-600 hover:underline text-sm max-w-xs truncate inline-block"
               title={website}
             >
-              {website.replace(/^https?:\/\//, '').split('/')[0]}
+              🌐 {website.replace(/^https?:\/\//, '').split('/')[0]}
             </a>
           );
         },
       },
-
-      // 6. 🆕 Category (New field)
+      // 6. Category
       {
         accessorFn: (row) => row.scrapedData?.category,
         id: "category",
@@ -264,17 +242,16 @@ export function DataTable({ data }: DataTableProps) {
           
           return (
             <Badge variant="outline" className="text-xs max-w-xs truncate" title={category}>
-              {category}
+              🏷️ {category}
             </Badge>
           );
         },
       },
-
-      // 7. 🆕 GPS Coordinates (New field - Latitude)
+      // 7. Latitude
       {
         accessorFn: (row) => row.scrapedData?.latitude,
         id: "latitude",
-        header: () => "📍 Latitude",
+        header: () => "🗺️ Latitude",
         cell: ({ row }) => {
           const latitude = row.original.scrapedData?.latitude;
           const longitude = row.original.scrapedData?.longitude;
@@ -295,20 +272,19 @@ export function DataTable({ data }: DataTableProps) {
                 className="text-blue-600 hover:underline text-xs font-mono"
                 title={`View on Google Maps: ${latitude}, ${longitude}`}
               >
-                {parseFloat(latitude).toFixed(6)}
+                🗺️ {parseFloat(latitude).toFixed(6)}
               </a>
             );
           }
           
           return (
             <span className="text-xs font-mono">
-              {parseFloat(latitude).toFixed(6)}
+              🗺️ {parseFloat(latitude).toFixed(6)}
             </span>
           );
         },
       },
-
-      // 8. 🆕 GPS Coordinates (New field - Longitude)
+      // 8. Longitude
       {
         accessorFn: (row) => row.scrapedData?.longitude,
         id: "longitude",
@@ -323,100 +299,16 @@ export function DataTable({ data }: DataTableProps) {
           
           return (
             <span className="text-xs font-mono">
-              {parseFloat(longitude).toFixed(6)}
+              📍 {parseFloat(longitude).toFixed(6)}
             </span>
           );
         },
       },
-
-      // 9. Input Address (What was sent)
-      {
-        accessorFn: (row) => row.originalData.address,
-        id: "input_address",
-        header: () => t('table.input_address'),
-        cell: ({ row }) => {
-          const inputAddress = row.original.originalData.address || '';
-          const inputCity = row.original.originalData.city || '';
-          const inputPostalCode = row.original.originalData.postal_code || '';
-          
-          return (
-            <div className="max-w-xs">
-              <div className="text-xs text-muted-foreground mb-1">{t('table.input_address')}:</div>
-              <div className="truncate font-medium" title={inputAddress || 'N/A'}>
-                {inputAddress || 'N/A'}
-              </div>
-              <div className="text-xs text-muted-foreground truncate mt-1">
-                {inputCity && inputPostalCode ? `${inputCity}, ${inputPostalCode}` : 
-                 inputCity || inputPostalCode || 'N/A'}
-              </div>
-            </div>
-          );
-        },
-      },
-      // 10. Found Phone (From Google Maps)
-      {
-        accessorFn: (row) => row.scrapedData?.phone,
-        id: "phone",
-        header: () => t('table.found_phone'),
-        cell: ({ row }) => {
-          const phone = row.original.scrapedData?.phone;
-          const status = row.original.scrapedData?.status;
-          
-          if (status !== 'success') {
-            return <span className="text-muted-foreground text-sm">N/A</span>;
-          }
-          return phone ? (
-            <a href={`tel:${phone}`} className="text-blue-600 hover:underline">
-              {phone}
-            </a>
-          ) : (
-            <span className="text-muted-foreground">N/A</span>
-          );
-        },
-      },
-      // 11. Social Media Links (From Google Maps)
-      {
-        accessorFn: (row) => row.scrapedData?.socialMedia?.facebook || row.scrapedData?.socialMedia?.instagram,
-        id: "social_media",
-        header: () => "Social",
-        cell: ({ row }) => {
-          const socialMedia = row.original.scrapedData?.socialMedia;
-          const status = row.original.scrapedData?.status;
-          
-          if (status !== 'success' || !socialMedia) {
-            return <span className="text-muted-foreground text-sm">N/A</span>;
-          }
-          
-          const links = [];
-          if (socialMedia.facebook) links.push({ name: 'FB', url: socialMedia.facebook });
-          if (socialMedia.instagram) links.push({ name: 'IG', url: socialMedia.instagram });
-          if (socialMedia.twitter) links.push({ name: 'TW', url: socialMedia.twitter });
-          
-          return links.length > 0 ? (
-            <div className="flex gap-1">
-              {links.slice(0, 2).map((link, idx) => (
-                <a
-                  key={idx}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline text-xs"
-                  title={link.url}
-                >
-                  {link.name}
-                </a>
-              ))}
-            </div>
-          ) : (
-            <span className="text-muted-foreground">N/A</span>
-          );
-        },
-      },
-      // 12-18. Daily Hours (From Google Maps openingHours)
+      // 9-15. Daily Hours
       {
         accessorFn: (row) => extractDayHours(row.scrapedData?.openingHours, "Monday"),
         id: "monday_hours",
-        header: "Mon",
+        header: "🗓️ Mon",
         size: 120,
         cell: ({ getValue }) => {
           const hours = getValue() as string | null;
@@ -426,7 +318,7 @@ export function DataTable({ data }: DataTableProps) {
       {
         accessorFn: (row) => extractDayHours(row.scrapedData?.openingHours, "Tuesday"),
         id: "tuesday_hours",
-        header: "Tue",
+        header: "🗓️ Tue",
         size: 120,
         cell: ({ getValue }) => {
           const hours = getValue() as string | null;
@@ -436,7 +328,7 @@ export function DataTable({ data }: DataTableProps) {
       {
         accessorFn: (row) => extractDayHours(row.scrapedData?.openingHours, "Wednesday"),
         id: "wednesday_hours",
-        header: "Wed",
+        header: "🗓️ Wed",
         size: 120,
         cell: ({ getValue }) => {
           const hours = getValue() as string | null;
@@ -446,7 +338,7 @@ export function DataTable({ data }: DataTableProps) {
       {
         accessorFn: (row) => extractDayHours(row.scrapedData?.openingHours, "Thursday"),
         id: "thursday_hours",
-        header: "Thu",
+        header: "🗓️ Thu",
         size: 120,
         cell: ({ getValue }) => {
           const hours = getValue() as string | null;
@@ -456,7 +348,7 @@ export function DataTable({ data }: DataTableProps) {
       {
         accessorFn: (row) => extractDayHours(row.scrapedData?.openingHours, "Friday"),
         id: "friday_hours",
-        header: "Fri",
+        header: "🗓️ Fri",
         size: 120,
         cell: ({ getValue }) => {
           const hours = getValue() as string | null;
@@ -466,7 +358,7 @@ export function DataTable({ data }: DataTableProps) {
       {
         accessorFn: (row) => extractDayHours(row.scrapedData?.openingHours, "Saturday"),
         id: "saturday_hours",
-        header: "Sat",
+        header: "🗓️ Sat",
         size: 120,
         cell: ({ getValue }) => {
           const hours = getValue() as string | null;
@@ -476,7 +368,7 @@ export function DataTable({ data }: DataTableProps) {
       {
         accessorFn: (row) => extractDayHours(row.scrapedData?.openingHours, "Sunday"),
         id: "sunday_hours",
-        header: "Sun",
+        header: "🗓️ Sun",
         size: 120,
         cell: ({ getValue }) => {
           const hours = getValue() as string | null;

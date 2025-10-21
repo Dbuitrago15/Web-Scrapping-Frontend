@@ -632,16 +632,14 @@ export class ApiService {
    */
   static async healthCheck(): Promise<boolean> {
     try {
-      // Usar proxy de Next.js en desarrollo, directo en producción
-      const healthUrl = process.env.NODE_ENV === 'production' 
-        ? 'http://localhost:3000/health'
-        : '/health'
+      // Use Next.js proxy in both development and production for consistency
+      const healthUrl = '/api/v1/health'
       
       const healthClient = axios.create({
         timeout: 5000,
       })
       
-      // Usar endpoint /health según documentación del nuevo backend
+      // Use endpoint /api/v1/health through Next.js proxy
       const response = await healthClient.get(healthUrl)
       console.log('✅ Backend health check successful:', response.status, response.data)
       return response.data?.status === 'ok'

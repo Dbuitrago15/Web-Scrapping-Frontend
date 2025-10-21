@@ -2,7 +2,9 @@ import { NextResponse } from 'next/server'
 
 export async function GET() {
   try {
-    const response = await fetch('http://localhost:3000/api/v1/health/redis', {
+    // Backend is running on port 3000 (Docker container scraper_api:3000:3000)
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:3000'
+    const response = await fetch(`${backendUrl}/health/redis`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

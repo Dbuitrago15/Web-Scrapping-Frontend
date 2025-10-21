@@ -111,79 +111,45 @@ export function convertToCSV(results: ScrapingResult[]): string {
     return ''
   }
   
-  // CSV Headers - Updated for new backend structure with GPS and enhanced fields
+  // CSV Headers - Simplified to essential fields only
   const headers = [
-    'Input Business Name',
-    'Input Address',  
-    'Input City',
-    'Input Postal Code',
-    'Scraped Business Name',
-    'Scraped Address',
-    'Status',
+    'Input Name',
+    'Found Name',
+    'Address',
     'Phone',
-    'Rating',              // 🆕 NEW: Star rating
-    'Reviews Count',       // 🆕 NEW: Number of reviews
-    'Website',             // 🆕 NEW: Official website
-    'Category',            // 🆕 NEW: Business category
-    'Latitude',            // 🆕 NEW: GPS Latitude
-    'Longitude',           // 🆕 NEW: GPS Longitude
-    'Facebook',
-    'Instagram',
-    'Twitter',
-    'LinkedIn',
-    'YouTube',
+    'Website',
+    'Category',
+    'Latitude',
+    'Longitude',
     'Monday Hours',
     'Tuesday Hours',
     'Wednesday Hours',
     'Thursday Hours',
     'Friday Hours',
     'Saturday Hours',
-    'Sunday Hours',
-    'Job ID',
-    'Processing Time (ms)',
-    'Processed At'
-  ]  // Convert data - Using new backend structure
+    'Sunday Hours'
+  ]  // Convert data - Simplified to essential fields only
   const csvRows = [
     headers.join(','), // Headers
     ...results.map(result => [
-      // INPUT DATA (Original CSV data)
-      escapeCSV(result.originalData.name || ''),                               // Input Business Name
-      escapeCSV(result.originalData.address || ''),                            // Input Address
-      escapeCSV(result.originalData.city || ''),                               // Input City
-      escapeCSV(result.originalData.postal_code || ''),                        // Input Postal Code
-      
-      // SCRAPED DATA (Real data from Google Maps)
-      escapeCSV(result.scrapedData?.fullName || ''),                           // Scraped Business Name
-      escapeCSV(result.scrapedData?.fullAddress || ''),                        // Scraped Address
-      result.scrapedData?.status || 'unknown',                                 // Status
+      // Essential fields only
+      escapeCSV(result.originalData.name || ''),                               // Input Name
+      escapeCSV(result.scrapedData?.fullName || ''),                           // Found Name
+      escapeCSV(result.scrapedData?.fullAddress || ''),                        // Address
       escapeCSV(result.scrapedData?.phone || ''),                              // Phone
-      escapeCSV(result.scrapedData?.rating || ''),                             // 🆕 Rating
-      escapeCSV(result.scrapedData?.reviewsCount || ''),                       // 🆕 Reviews Count
-      escapeCSV(result.scrapedData?.website || ''),                            // 🆕 Website
-      escapeCSV(result.scrapedData?.category || ''),                           // 🆕 Category
-      escapeCSV(result.scrapedData?.latitude || ''),                           // 🆕 GPS Latitude
-      escapeCSV(result.scrapedData?.longitude || ''),                          // 🆕 GPS Longitude
+      escapeCSV(result.scrapedData?.website || ''),                            // Website
+      escapeCSV(result.scrapedData?.category || ''),                           // Category
+      escapeCSV(result.scrapedData?.latitude || ''),                           // Latitude
+      escapeCSV(result.scrapedData?.longitude || ''),                          // Longitude
       
-      // SOCIAL MEDIA (From Google Maps)
-      escapeCSV(result.scrapedData?.socialMedia?.facebook || ''),              // Facebook
-      escapeCSV(result.scrapedData?.socialMedia?.instagram || ''),             // Instagram
-      escapeCSV(result.scrapedData?.socialMedia?.twitter || ''),               // Twitter
-      escapeCSV(result.scrapedData?.socialMedia?.linkedin || ''),              // LinkedIn
-      escapeCSV(result.scrapedData?.socialMedia?.youtube || ''),               // YouTube
-      
-      // OPERATING HOURS (From Google Maps)
+      // Operating Hours
       escapeCSV(formatHours(extractDayHours(result.scrapedData?.openingHours, 'Monday'))),    // Monday
       escapeCSV(formatHours(extractDayHours(result.scrapedData?.openingHours, 'Tuesday'))),   // Tuesday
       escapeCSV(formatHours(extractDayHours(result.scrapedData?.openingHours, 'Wednesday'))), // Wednesday
       escapeCSV(formatHours(extractDayHours(result.scrapedData?.openingHours, 'Thursday'))),  // Thursday
       escapeCSV(formatHours(extractDayHours(result.scrapedData?.openingHours, 'Friday'))),    // Friday
       escapeCSV(formatHours(extractDayHours(result.scrapedData?.openingHours, 'Saturday'))),  // Saturday
-      escapeCSV(formatHours(extractDayHours(result.scrapedData?.openingHours, 'Sunday'))),    // Sunday
-      
-      // PROCESSING INFO
-      escapeCSV(result.jobId || ''),                                           // Job ID
-      result.processingTime?.toString() || '',                                 // Processing Time (ms)
-      escapeCSV(result.processedAt || '')                                      // Processed At
+      escapeCSV(formatHours(extractDayHours(result.scrapedData?.openingHours, 'Sunday')))     // Sunday
     ].join(','))
   ]
   
@@ -222,7 +188,9 @@ export function downloadCSV(results: ScrapingResult[], filename?: string) {
     return
   }
   
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  // Add UTF-8 BOM for proper character encoding in Excel
+  const BOM = '\uFEFF'
+  const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' })
   const link = document.createElement('a')
   
   if (link.download !== undefined) {

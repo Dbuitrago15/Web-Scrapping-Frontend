@@ -1,4 +1,4 @@
-// File: C:\Users\dilan\Documents\GitHub\Web-Scrapping-Frontend\src\app\api\v1\health\worker\route.ts
+// File: C:\Users\dilan\Documents\GitHub\Web-Scrapping-Frontend2\src\app\api\v1\health\worker\route.ts
 import * as entry from '../../../../../../../src/app/api/v1/health/worker/route.js'
 import type { NextRequest } from 'next/server.js'
 

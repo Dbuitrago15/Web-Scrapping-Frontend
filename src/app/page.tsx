@@ -1,9 +1,9 @@
 "use client"
 
-import React, { useState, useCallback } from "react"
-import { ApiService, ScrapingResult as ApiScrapingResult, BatchStatus, getProgress } from "@/lib/api"
+import React, { useState, useCallback, useEffect } from "react"
+import { ApiService, ScrapingResult as ApiScrapingResult, BatchStatus } from "@/lib/api"
 import { FileUploaderCard } from "@/components/file-uploader-card"
-import { ProcessingStatusCard } from "@/components/processing-status-card"
+import { RealtimeProcessingCard } from "@/components/realtime-processing-card"
 import { CompletionCard } from "@/components/completion-card"
 import { ErrorCard } from "@/components/error-card"
 import { ResultsModal } from "@/components/results-modal"
@@ -11,7 +11,6 @@ import { ConnectionStatus } from "@/components/connection-status"
 import { BackendStatusCard } from "@/components/backend-status-card"
 import { LanguageSelector } from "@/components/language-selector"
 import { useTranslation } from "@/hooks/use-translation"
-import { usePolling } from "@/hooks/use-polling"
 
 // Estados posibles de la aplicación
 type AppStatus = 'idle' | 'uploading' | 'processing' | 'complete' | 'error'
@@ -33,8 +32,57 @@ export default function HomePage() {
   const [results, setResults] = useState<ApiScrapingResult[]>([])
   const [error, setError] = useState<string>('')
   const [showResults, setShowResults] = useState(false)
+  const [isRestoringSession, setIsRestoringSession] = useState(true)
   
   const { t } = useTranslation()
+
+  // ===============================
+  // RESTORE SESSION ON MOUNT
+  // ===============================
+  useEffect(() => {
+    const savedBatchId = localStorage.getItem('currentBatchId')
+    const savedStatus = localStorage.getItem('currentStatus') as AppStatus
+    
+    if (savedBatchId && savedStatus === 'processing') {
+      console.log('🔄 Restoring session for batch:', savedBatchId)
+      setBatchId(savedBatchId)
+      setStatus('processing')
+      
+      // Fetch current batch status immediately
+      ApiService.getBatchStatus(savedBatchId)
+        .then(batchStatus => {
+          console.log('📊 Restored batch status:', batchStatus)
+          if (batchStatus.progress) {
+            setProgress({
+              completed: batchStatus.progress.completed,
+              total: batchStatus.progress.total
+            })
+          }
+        })
+        .catch(err => {
+          console.error('❌ Failed to restore batch status:', err)
+        })
+    }
+    
+    setIsRestoringSession(false)
+  }, [])
+
+  // ===============================
+  // SAVE SESSION TO LOCALSTORAGE
+  // ===============================
+  useEffect(() => {
+    if (batchId) {
+      localStorage.setItem('currentBatchId', batchId)
+    } else {
+      localStorage.removeItem('currentBatchId')
+    }
+    
+    if (status !== 'idle') {
+      localStorage.setItem('currentStatus', status)
+    } else {
+      localStorage.removeItem('currentStatus')
+    }
+  }, [batchId, status])
 
   // ===============================
   // MANEJO DE ARCHIVO
@@ -67,8 +115,15 @@ export default function HomePage() {
       // Intentar upload directamente - si falla, el error nos dirá por qué
       const response = await ApiService.uploadFile(file)
       
-      console.log('Upload successful, batch ID:', response.batchId)
+      console.log('Upload successful, batch ID:', response.batchId, 'Jobs created:', response.jobsCreated)
       setBatchId(response.batchId)
+      
+      // Set initial progress with total from upload response
+      setProgress({ 
+        completed: 0, 
+        total: response.jobsCreated || 0 
+      })
+      
       setStatus('processing')
       
     } catch (error: any) {
@@ -81,53 +136,52 @@ export default function HomePage() {
   // Esta función ya no es necesaria - usamos solo datos reales del backend
 
   // ===============================
-  // CALLBACKS PARA POLLING
+  // CALLBACKS PARA SSE STREAMING
   // ===============================
-  const handleStatusUpdate = useCallback((batchStatus: BatchStatus) => {
-    console.log('Status update received:', batchStatus)
-    // Obtener el progreso del backend (nueva estructura)
-    const progressData = getProgress(batchStatus)
-    setProgress({ completed: progressData.completed, total: progressData.total })
-    
-    // Actualizar estado si está procesando
-    if (batchStatus.status === 'processing' || batchStatus.status === 'queued') {
-      setStatus('processing')
-    }
-    
-    // Si hay resultados parciales, mostrarlos
-    if (batchStatus.results && batchStatus.results.length > 0) {
-      setResults(batchStatus.results)
-    }
+  const handleProgressUpdate = useCallback((completed: number, total: number) => {
+    console.log('📊 Progress update:', completed, '/', total)
+    setProgress({ completed, total })
   }, [])
 
-  const handleProcessingComplete = useCallback((batchStatus: BatchStatus) => {
-    console.log('Processing completed:', batchStatus)
-    if (batchStatus.results) {
-      setResults(batchStatus.results)
-      setStatus('complete')
-    } else {
-      setError(t('error.processing'))
-      setStatus('error')
+  const handleProcessingComplete = useCallback(async (completeData?: { completed: number; total: number }) => {
+    console.log('✅ Processing completed, fetching final results...', completeData)
+    
+    // Update progress if provided
+    if (completeData) {
+      setProgress({ 
+        completed: completeData.completed, 
+        total: completeData.total 
+      })
     }
-  }, [t])
-
-  const handleProcessingError = useCallback((errorMessage: string) => {
-    console.error('Processing error:', errorMessage)
-    setError(errorMessage || t('error.processing'))
-    setStatus('error')
-  }, [t])
-
-  // ===============================
-  // HOOK DE POLLING
-  // ===============================
-  usePolling({
-    batchId,
-    isActive: status === 'processing',
-    interval: 3000, // Polling cada 3 segundos
-    onStatusUpdate: handleStatusUpdate,
-    onComplete: handleProcessingComplete,
-    onError: handleProcessingError,
-  })
+    
+    // Fetch final results from backend
+    if (batchId) {
+      try {
+        const batchStatus = await ApiService.getBatchStatus(batchId)
+        if (batchStatus.results) {
+          setResults(batchStatus.results)
+          setStatus('complete')
+          
+          // Update progress with actual batch data if not already set
+          if (!completeData && batchStatus.progress) {
+            setProgress({
+              completed: batchStatus.progress.completed,
+              total: batchStatus.progress.total
+            })
+          }
+        } else {
+          setError(t('error.processing'))
+          setStatus('error')
+        }
+      } catch (error: any) {
+        console.error('Failed to fetch final results:', error)
+        setError(error.message || t('error.processing'))
+        setStatus('error')
+      }
+    } else {
+      setStatus('complete')
+    }
+  }, [batchId, t])
 
   // ===============================
   // MANEJO DE MODAL DE RESULTADOS
@@ -144,6 +198,9 @@ export default function HomePage() {
   // REINTENTAR PROCESO
   // ===============================
   const handleRetry = useCallback(() => {
+    console.log('🔄 Retrying - clearing session')
+    localStorage.removeItem('currentBatchId')
+    localStorage.removeItem('currentStatus')
     setStatus('idle')
     setError('')
     setBatchId(null)
@@ -155,13 +212,12 @@ export default function HomePage() {
   // 🆕 NUEVA BÚSQUEDA (UPLOAD ANOTHER CSV)
   // ===============================
   const handleNewSearch = useCallback(() => {
-    setStatus('idle')
-    setFile(null)
-    setError('')
-    setBatchId(null)
-    setProgress({ completed: 0, total: 0 })
-    setResults([])
-    setShowResults(false)
+    console.log('🔄 Starting new search - clearing session')
+    localStorage.removeItem('currentBatchId')
+    localStorage.removeItem('currentStatus')
+    
+    // Force page reload to clear all state
+    window.location.reload()
   }, [])
 
   // ===============================
@@ -182,7 +238,13 @@ export default function HomePage() {
       
       case 'processing':
         return (
-          <ProcessingStatusCard progress={progress} />
+          <RealtimeProcessingCard 
+            batchId={batchId}
+            progress={progress}
+            onProgressUpdate={handleProgressUpdate}
+            onComplete={handleProcessingComplete}
+            onNewSearch={handleNewSearch}
+          />
         )
       
       case 'complete':
