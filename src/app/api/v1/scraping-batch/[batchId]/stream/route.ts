@@ -4,9 +4,9 @@ const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3000'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { batchId: string } }
+  { params }: { params: Promise<{ batchId: string }> }
 ) {
-  const { batchId } = params
+  const { batchId } = await params
 
   if (!batchId) {
     return NextResponse.json(
