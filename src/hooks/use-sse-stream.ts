@@ -71,6 +71,7 @@ export function useSSEStream({
     }
 
     console.log('🔄 Starting polling fallback (every 2 seconds)')
+    setIsConnected(true) // Show as connected even with polling
     
     pollingIntervalRef.current = setInterval(async () => {
       if (!batchId || hasCompletedRef.current) {
@@ -82,7 +83,7 @@ export function useSSEStream({
         const response = await fetch(`/api/v1/scraping-batch/${batchId}`)
         const data = await response.json()
         
-        console.log('📊 Polling update:', data.progress)
+        console.log('📊 Polling update - Status:', data.status, 'Results:', data.results?.length || 0)
         
         // Update progress
         if (onProgressRef.current && data.progress) {
@@ -92,6 +93,18 @@ export function useSSEStream({
             total: data.progress.total,
             percentage: data.progress.percentage,
             timestamp: new Date().toISOString()
+          })
+        }
+        
+        // Send all results (the parent component will deduplicate)
+        if (onResultRef.current && data.results && Array.isArray(data.results)) {
+          data.results.forEach((result: any) => {
+            if (onResultRef.current) {
+              onResultRef.current({
+                ...result,
+                timestamp: new Date().toISOString()
+              })
+            }
           })
         }
 
@@ -135,6 +148,18 @@ export function useSSEStream({
     isConnectingRef.current = true
     console.log('🔌 Connecting to SSE stream for batch:', batchId)
     console.log('📡 Backend URL:', backendUrl)
+    
+    // Check if we're behind a proxy/CDN (Cloudflare, etc)
+    const isProxied = typeof window !== 'undefined' && 
+                     (window.location.hostname !== 'localhost' && 
+                      window.location.hostname !== '127.0.0.1')
+    
+    if (isProxied) {
+      console.log('🌐 Detected proxy/CDN, using polling instead of SSE')
+      isConnectingRef.current = false
+      startPolling()
+      return
+    }
     
     // First, check if the batch is already complete
     fetch(`/api/v1/scraping-batch/${batchId}`)
